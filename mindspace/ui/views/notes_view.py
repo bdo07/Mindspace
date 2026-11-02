@@ -22,6 +22,7 @@ from mindspace.services.note_service import NoteService
 from mindspace.ui.assets.icons import get_icon, render_svg_pixmap
 from mindspace.ui.components.note_card import NoteCard
 from mindspace.ui.components.search_bar import SearchBar
+from mindspace.ui.dialogs.confirm_dialog import ConfirmDialog
 from mindspace.ui.themes.theme_manager import ThemeManager
 
 
