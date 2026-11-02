@@ -1,7 +1,7 @@
 /* MINDSPACE Light Theme - Premium Minimalist macOS Aesthetic */
 
 * {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Inter, Arial, sans-serif;
+    font-family: ".AppleSystemUIFont", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Inter, Arial, sans-serif;
     outline: none;
 }
 

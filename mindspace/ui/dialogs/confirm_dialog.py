@@ -1,5 +1,13 @@
 """Confirmation dialog for destructive and warning actions."""
 
+import sys
+from pathlib import Path
+
+# Ensure project root is on sys.path if run standalone
+_project_root = str(Path(__file__).resolve().parent.parent.parent.parent)
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QDialog,

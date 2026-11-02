@@ -1,7 +1,15 @@
 """Dialog for creating and editing tasks with input validation."""
 
+import sys
 from datetime import date
+from pathlib import Path
 from typing import List, Optional
+
+# Ensure project root is on sys.path if run standalone
+_project_root = str(Path(__file__).resolve().parent.parent.parent.parent)
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+
 from PySide6.QtCore import QDate, Qt
 from PySide6.QtWidgets import (
     QComboBox,
