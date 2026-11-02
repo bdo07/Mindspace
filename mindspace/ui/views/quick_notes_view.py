@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
     QPlainTextEdit,
     QPushButton,
     QScrollArea,
+    QSizePolicy,
     QVBoxLayout,
     QWidget,
 )
@@ -23,7 +24,7 @@ from mindspace.utils.date_utils import format_relative_date
 
 
 class QuickNotesView(QWidget):
-    """Frictionless scratchpad view."""
+    """Frictionless scratchpad view for instant thought capture."""
 
     open_in_editor_requested = Signal(int)
     counts_changed = Signal()
@@ -47,10 +48,10 @@ class QuickNotesView(QWidget):
 
     def _setup_ui(self):
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(28, 24, 28, 24)
-        main_layout.setSpacing(18)
+        main_layout.setContentsMargins(24, 20, 24, 20)
+        main_layout.setSpacing(14)
 
-        # Header
+        # 1. Header
         header_layout = QVBoxLayout()
         header_layout.setSpacing(2)
 
@@ -64,25 +65,18 @@ class QuickNotesView(QWidget):
 
         main_layout.addLayout(header_layout)
 
-        # Quick Capture Box
+        # 2. Quick Capture Box
         capture_frame = QFrame(self)
         capture_frame.setObjectName("quickCaptureBox")
-        capture_frame.setStyleSheet("""
-            QFrame#quickCaptureBox {
-                background-color: #FFFFFF;
-                border: 1px solid #EAE8E2;
-                border-radius: 12px;
-                padding: 12px;
-            }
-        """)
+        capture_frame.setProperty("class", "noteCard")
 
         capture_layout = QVBoxLayout(capture_frame)
-        capture_layout.setContentsMargins(12, 10, 12, 10)
+        capture_layout.setContentsMargins(14, 12, 14, 12)
         capture_layout.setSpacing(8)
 
         self.input_box = QPlainTextEdit(capture_frame)
         self.input_box.setPlaceholderText("What's on your mind? Jot down an idea, link, or fragment...")
-        self.input_box.setMaximumHeight(85)
+        self.input_box.setMaximumHeight(80)
         self.input_box.setStyleSheet("""
             QPlainTextEdit {
                 border: none;
@@ -95,7 +89,7 @@ class QuickNotesView(QWidget):
 
         action_row = QHBoxLayout()
         hint_lbl = QLabel("Press Ctrl/Cmd + Enter to capture", capture_frame)
-        hint_lbl.setStyleSheet("font-size: 11px; color: #858585;")
+        hint_lbl.setStyleSheet("font-size: 11px; color: #8E8E93;")
         action_row.addWidget(hint_lbl)
         action_row.addStretch()
 
@@ -109,10 +103,11 @@ class QuickNotesView(QWidget):
         capture_layout.addLayout(action_row)
         main_layout.addWidget(capture_frame)
 
-        # Scroll Area for thoughts
+        # 3. Scroll Area for thoughts
         self.scroll_area = QScrollArea(self)
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setStyleSheet("QScrollArea { border: none; background: transparent; }")
+        self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
         self.thoughts_container = QWidget()
         self.thoughts_container.setStyleSheet("background: transparent;")
@@ -124,7 +119,7 @@ class QuickNotesView(QWidget):
         self.scroll_area.setWidget(self.thoughts_container)
         main_layout.addWidget(self.scroll_area, 1)
 
-        # Empty State
+        # 4. Empty State
         self.empty_state = QWidget(self)
         empty_layout = QVBoxLayout(self.empty_state)
         empty_layout.setAlignment(Qt.AlignCenter)
@@ -161,13 +156,11 @@ class QuickNotesView(QWidget):
         self.counts_changed.emit()
 
     def refresh(self):
-        # Clear existing cards
         for card in self._cards:
             self.thoughts_layout.removeWidget(card)
             card.deleteLater()
         self._cards.clear()
 
-        # Remove stretch item
         while self.thoughts_layout.count():
             item = self.thoughts_layout.takeAt(0)
             if item.widget():
@@ -184,30 +177,23 @@ class QuickNotesView(QWidget):
         self.empty_state.setVisible(False)
 
         theme = ThemeManager.instance()
-        border_color = theme.get_color("border")
         card_bg = theme.get_color("surface")
+        border_color = theme.get_color("border")
 
         for note in quick_notes:
             card = QFrame(self.thoughts_container)
-            card.setStyleSheet(f"""
-                QFrame {{
-                    background-color: {card_bg};
-                    border: 1px solid {border_color};
-                    border-radius: 10px;
-                    padding: 12px 14px;
-                }}
-            """)
+            card.setProperty("class", "noteCard")
+            card.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
             card_layout = QVBoxLayout(card)
-            card_layout.setContentsMargins(12, 10, 12, 10)
+            card_layout.setContentsMargins(14, 12, 14, 12)
             card_layout.setSpacing(8)
 
             # Thought Text
             content_lbl = QLabel(note.content, card)
-            content_lbl.setProperty("class", "cardPreview")
             content_lbl.setTextInteractionFlags(Qt.TextSelectableByMouse)
             content_lbl.setWordWrap(True)
-            content_lbl.setStyleSheet("font-size: 14px; color: inherit; line-height: 1.45;")
+            content_lbl.setStyleSheet("font-size: 13px; color: inherit; line-height: 1.5;")
             card_layout.addWidget(content_lbl)
 
             # Footer
@@ -239,8 +225,9 @@ class QuickNotesView(QWidget):
             del_btn = QPushButton(card)
             del_btn.setProperty("class", "iconBtn")
             del_btn.setFixedSize(26, 26)
-            del_btn.setIcon(get_icon("trash", color=theme.get_color("danger"), size=14))
+            del_btn.setIcon(get_icon("trash", color=theme.get_color("danger"), size=13))
             del_btn.setCursor(Qt.PointingHandCursor)
+            del_btn.setToolTip("Delete Quick Note")
             del_btn.clicked.connect(lambda checked=False, nid=note.id: self._delete_thought(nid))
             footer.addWidget(del_btn)
 
@@ -263,7 +250,7 @@ class QuickNotesView(QWidget):
         confirmed = ConfirmDialog.ask(
             self,
             title="Delete Quick Note",
-            message="Are you sure you want to delete this thought?",
+            message="Are you sure you want to delete this thought? This action cannot be undone.",
             confirm_label="Delete",
             is_danger=True,
         )
@@ -275,7 +262,7 @@ class QuickNotesView(QWidget):
     def _update_icons(self):
         try:
             theme = ThemeManager.instance()
-            self.add_btn.setIcon(get_icon("plus", color="#FFFFFF", size=14))
+            self.add_btn.setIcon(get_icon("plus", color="#FFFFFF", size=13))
             self.empty_icon.setPixmap(render_svg_pixmap("quick", color=theme.get_color("accent"), size=44))
         except RuntimeError:
             pass

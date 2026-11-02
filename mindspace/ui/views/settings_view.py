@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QLabel,
     QPushButton,
     QScrollArea,
+    QSizePolicy,
     QVBoxLayout,
     QWidget,
 )
@@ -53,8 +54,8 @@ class SettingsView(QWidget):
 
     def _setup_ui(self):
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(28, 24, 28, 24)
-        main_layout.setSpacing(16)
+        main_layout.setContentsMargins(24, 20, 24, 20)
+        main_layout.setSpacing(14)
 
         # Header
         header_layout = QVBoxLayout()
@@ -64,7 +65,7 @@ class SettingsView(QWidget):
         title.setObjectName("pageTitle")
         header_layout.addWidget(title)
 
-        subtitle = QLabel("Personalize your workspace, preferences, and data.", self)
+        subtitle = QLabel("Personalize your workspace, preferences, and local data.", self)
         subtitle.setObjectName("pageSubtitle")
         header_layout.addWidget(subtitle)
 
@@ -74,12 +75,13 @@ class SettingsView(QWidget):
         scroll = QScrollArea(self)
         scroll.setWidgetResizable(True)
         scroll.setStyleSheet("QScrollArea { border: none; background: transparent; }")
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
         container = QWidget()
         container.setStyleSheet("background: transparent;")
         c_layout = QVBoxLayout(container)
         c_layout.setContentsMargins(0, 4, 0, 16)
-        c_layout.setSpacing(20)
+        c_layout.setSpacing(18)
 
         # 1. Appearance Section
         c_layout.addWidget(self._create_section_title("APPEARANCE"))
@@ -89,9 +91,9 @@ class SettingsView(QWidget):
         tc_layout.setSpacing(12)
 
         t_lbl = QLabel("Color Theme", theme_card)
-        t_lbl.setStyleSheet("font-size: 14px; font-weight: 600;")
+        t_lbl.setStyleSheet("font-size: 13px; font-weight: 600;")
         t_desc = QLabel("Choose between a warm light canvas and an eye-friendly dark mode.", theme_card)
-        t_desc.setStyleSheet("font-size: 12px; color: #858585;")
+        t_desc.setStyleSheet("font-size: 12px; color: #8E8E93;")
 
         t_text_box = QVBoxLayout()
         t_text_box.addWidget(t_lbl)
@@ -101,7 +103,7 @@ class SettingsView(QWidget):
         self.theme_combo = QComboBox(theme_card)
         self.theme_combo.setProperty("class", "standardInput")
         self.theme_combo.setFixedHeight(34)
-        self.theme_combo.setMinimumWidth(140)
+        self.theme_combo.setMinimumWidth(150)
         self.theme_combo.addItem("Light Canvas", userData="light")
         self.theme_combo.addItem("Dark Charcoal", userData="dark")
 
@@ -112,9 +114,9 @@ class SettingsView(QWidget):
 
         # Startup View
         v_lbl = QLabel("Default Startup View", theme_card)
-        v_lbl.setStyleSheet("font-size: 14px; font-weight: 600;")
+        v_lbl.setStyleSheet("font-size: 13px; font-weight: 600;")
         v_desc = QLabel("Select which view opens automatically when starting Mindspace.", theme_card)
-        v_desc.setStyleSheet("font-size: 12px; color: #858585;")
+        v_desc.setStyleSheet("font-size: 12px; color: #8E8E93;")
 
         v_text_box = QVBoxLayout()
         v_text_box.addWidget(v_lbl)
@@ -124,7 +126,7 @@ class SettingsView(QWidget):
         self.startup_combo = QComboBox(theme_card)
         self.startup_combo.setProperty("class", "standardInput")
         self.startup_combo.setFixedHeight(34)
-        self.startup_combo.setMinimumWidth(140)
+        self.startup_combo.setMinimumWidth(150)
         self.startup_combo.addItem("All Notes", userData="notes")
         self.startup_combo.addItem("Quick Notes", userData="quick")
         self.startup_combo.addItem("Tasks", userData="tasks")
@@ -148,9 +150,9 @@ class SettingsView(QWidget):
         ec_layout.setSpacing(12)
 
         as_lbl = QLabel("Auto-Save Frequency", editor_card)
-        as_lbl.setStyleSheet("font-size: 14px; font-weight: 600;")
+        as_lbl.setStyleSheet("font-size: 13px; font-weight: 600;")
         as_desc = QLabel("Notes are automatically saved locally as you write without losing focus.", editor_card)
-        as_desc.setStyleSheet("font-size: 12px; color: #858585;")
+        as_desc.setStyleSheet("font-size: 12px; color: #8E8E93;")
 
         as_box = QVBoxLayout()
         as_box.addWidget(as_lbl)
@@ -160,7 +162,7 @@ class SettingsView(QWidget):
         self.autosave_combo = QComboBox(editor_card)
         self.autosave_combo.setProperty("class", "standardInput")
         self.autosave_combo.setFixedHeight(34)
-        self.autosave_combo.setMinimumWidth(140)
+        self.autosave_combo.setMinimumWidth(150)
         self.autosave_combo.addItem("Fast (400 ms)", userData=400)
         self.autosave_combo.addItem("Normal (600 ms)", userData=600)
         self.autosave_combo.addItem("Relaxed (1200 ms)", userData=1200)
@@ -176,31 +178,29 @@ class SettingsView(QWidget):
         c_layout.addWidget(editor_card)
 
         # 3. Database & Backup Section
-        c_layout.addWidget(self._create_section_title("DATA & BACKUP"))
+        c_layout.addWidget(self._create_section_title("LOCAL DATA & BACKUP"))
         backup_card = self._create_card()
         bc_layout = QVBoxLayout(backup_card)
         bc_layout.setContentsMargins(16, 14, 16, 14)
-        bc_layout.setSpacing(14)
+        bc_layout.setSpacing(12)
 
-        # Stats summary
         self.stats_lbl = QLabel(backup_card)
-        self.stats_lbl.setStyleSheet("font-size: 13px; line-height: 1.5;")
+        self.stats_lbl.setStyleSheet("font-size: 12px; line-height: 1.6;")
         bc_layout.addWidget(self.stats_lbl)
 
-        # Buttons row
         btn_row = QHBoxLayout()
         btn_row.setSpacing(10)
 
         self.export_btn = QPushButton("Export Backup...", backup_card)
         self.export_btn.setProperty("class", "secondaryBtn")
-        self.export_btn.setFixedHeight(34)
+        self.export_btn.setFixedHeight(32)
         self.export_btn.setCursor(Qt.PointingHandCursor)
         self.export_btn.clicked.connect(self._on_export_backup)
         btn_row.addWidget(self.export_btn)
 
         self.restore_btn = QPushButton("Restore Backup...", backup_card)
         self.restore_btn.setProperty("class", "secondaryBtn")
-        self.restore_btn.setFixedHeight(34)
+        self.restore_btn.setFixedHeight(32)
         self.restore_btn.setCursor(Qt.PointingHandCursor)
         self.restore_btn.clicked.connect(self._on_restore_backup)
         btn_row.addWidget(self.restore_btn)
@@ -216,17 +216,18 @@ class SettingsView(QWidget):
         ac_layout.setContentsMargins(16, 14, 16, 14)
 
         info_box = QVBoxLayout()
+        info_box.setSpacing(2)
         app_name_lbl = QLabel(f"MINDSPACE v{__version__}", about_card)
-        app_name_lbl.setStyleSheet("font-size: 14px; font-weight: 600;")
-        tech_lbl = QLabel("Modern desktop sanctuary built with Python 3, PySide6 & SQLite.", about_card)
-        tech_lbl.setStyleSheet("font-size: 12px; color: #858585;")
+        app_name_lbl.setStyleSheet("font-size: 14px; font-weight: 700;")
+        tech_lbl = QLabel("Modern desktop productivity sanctuary built with Python 3, PySide6 & SQLite.", about_card)
+        tech_lbl.setStyleSheet("font-size: 12px; color: #8E8E93;")
         info_box.addWidget(app_name_lbl)
         info_box.addWidget(tech_lbl)
         ac_layout.addLayout(info_box, 1)
 
-        self.shortcuts_btn = QPushButton("Keyboard Shortcuts", about_card)
+        self.shortcuts_btn = QPushButton("Shortcuts Guide", about_card)
         self.shortcuts_btn.setProperty("class", "secondaryBtn")
-        self.shortcuts_btn.setFixedHeight(34)
+        self.shortcuts_btn.setFixedHeight(32)
         self.shortcuts_btn.setCursor(Qt.PointingHandCursor)
         self.shortcuts_btn.clicked.connect(self._show_about_dialog)
         ac_layout.addWidget(self.shortcuts_btn)
@@ -239,22 +240,13 @@ class SettingsView(QWidget):
 
     def _create_section_title(self, text: str) -> QLabel:
         lbl = QLabel(text, self)
-        lbl.setProperty("class", "sidebarSectionTitle")
-        lbl.setStyleSheet("font-size: 11px; font-weight: 700; color: #858585; letter-spacing: 0.8px;")
+        lbl.setProperty("class", "sectionHeader")
         return lbl
 
     def _create_card(self) -> QFrame:
         card = QFrame(self)
-        theme = ThemeManager.instance()
-        bg = theme.get_color("surface")
-        border = theme.get_color("border")
-        card.setStyleSheet(f"""
-            QFrame {{
-                background-color: {bg};
-                border: 1px solid {border};
-                border-radius: 12px;
-            }}
-        """)
+        card.setProperty("class", "noteCard")
+        card.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         return card
 
     def refresh(self):
@@ -262,12 +254,11 @@ class SettingsView(QWidget):
         stats = self.backup_service.get_stats()
         kb_size = max(1, stats["file_size"] // 1024)
         self.stats_lbl.setText(
-            f"<b>Database path:</b> {self.backup_service.db.db_path}<br>"
-            f"<b>Active Notes:</b> {stats['active_notes']} &nbsp;|&nbsp; "
-            f"<b>Archived:</b> {stats['archived_notes']} &nbsp;|&nbsp; "
-            f"<b>Tasks:</b> {stats['total_tasks']} &nbsp;|&nbsp; "
-            f"<b>Categories:</b> {stats['total_categories']} &nbsp;|&nbsp; "
-            f"<b>File Size:</b> {kb_size} KB"
+            f"<b>Database location:</b> {self.backup_service.db.db_path}<br>"
+            f"<b>Notes:</b> {stats['active_notes']} active, {stats['archived_notes']} archived &nbsp;•&nbsp; "
+            f"<b>Tasks:</b> {stats['total_tasks']} &nbsp;•&nbsp; "
+            f"<b>Categories:</b> {stats['total_categories']} &nbsp;•&nbsp; "
+            f"<b>Storage:</b> {kb_size} KB"
         )
 
     def _on_theme_select(self, idx: int):
@@ -338,8 +329,8 @@ class SettingsView(QWidget):
         try:
             theme = ThemeManager.instance()
             icon_color = theme.get_color("icon")
-            self.export_btn.setIcon(get_icon("backup", color=icon_color, size=15))
-            self.restore_btn.setIcon(get_icon("restore", color=icon_color, size=15))
-            self.shortcuts_btn.setIcon(get_icon("info", color=icon_color, size=15))
+            self.export_btn.setIcon(get_icon("backup", color=icon_color, size=14))
+            self.restore_btn.setIcon(get_icon("restore", color=icon_color, size=14))
+            self.shortcuts_btn.setIcon(get_icon("info", color=icon_color, size=14))
         except RuntimeError:
             pass

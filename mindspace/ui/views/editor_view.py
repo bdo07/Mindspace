@@ -1,10 +1,11 @@
-"""Markdown note editor view with live preview, toolbar, and auto-save."""
+"""Markdown note editor view with live split preview, toolbar, and auto-save."""
 
 from typing import List, Optional
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QKeySequence, QShortcut
+from PySide6.QtGui import QFont, QKeySequence, QResizeEvent, QShortcut
 from PySide6.QtWidgets import (
     QComboBox,
+    QFrame,
     QHBoxLayout,
     QLabel,
     QLineEdit,
@@ -21,8 +22,7 @@ from mindspace.models.category import Category
 from mindspace.models.note import Note
 from mindspace.services.category_service import CategoryService
 from mindspace.services.note_service import NoteService
-from mindspace.ui.assets.icons import get_icon
-from mindspace.ui.components.toast import Toast
+from mindspace.ui.assets.icons import get_icon, render_svg_pixmap
 from mindspace.ui.components.toolbar import EditorToolbar
 from mindspace.ui.dialogs.confirm_dialog import ConfirmDialog
 from mindspace.ui.themes.theme_manager import ThemeManager
@@ -31,7 +31,7 @@ from mindspace.utils.markdown_utils import markdown_to_html
 
 
 class EditorView(QWidget):
-    """Note editor view with formatting tools, preview, and debounced auto-save."""
+    """Note editor view with live markdown preview, formatting tools, and auto-save."""
 
     back_requested = Signal()
     note_saved = Signal(int)
@@ -49,7 +49,7 @@ class EditorView(QWidget):
         self.current_note: Optional[Note] = None
 
         self._is_loading = False
-        self._is_preview_mode = False
+        self._mode = "write"  # 'write', 'split', 'preview'
 
         self._setup_ui()
         self._setup_shortcuts()
@@ -59,18 +59,18 @@ class EditorView(QWidget):
 
     def _setup_ui(self):
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(28, 20, 28, 24)
-        main_layout.setSpacing(14)
+        main_layout.setContentsMargins(24, 18, 24, 20)
+        main_layout.setSpacing(12)
 
-        # 1. Top action bar
+        # 1. Top Action Bar
         top_bar = QHBoxLayout()
-        top_bar.setSpacing(10)
+        top_bar.setSpacing(8)
 
-        self.back_btn = QPushButton("Notes", self)
+        self.back_btn = QPushButton("All Notes", self)
         self.back_btn.setProperty("class", "secondaryBtn")
         self.back_btn.setFixedHeight(32)
         self.back_btn.setCursor(Qt.PointingHandCursor)
-        self.back_btn.clicked.connect(self.back_requested.emit)
+        self.back_btn.clicked.connect(self._on_back_clicked)
         top_bar.addWidget(self.back_btn)
 
         # Category dropdown
@@ -82,16 +82,57 @@ class EditorView(QWidget):
         top_bar.addWidget(self.cat_combo)
 
         # Save status indicator
-        self.save_status = QLabel("Saved", self)
-        self.save_status.setStyleSheet("font-size: 12px; font-weight: 500; color: #858585; padding-left: 6px;")
-        top_bar.addWidget(self.save_status)
+        self.status_container = QWidget(self)
+        status_layout = QHBoxLayout(self.status_container)
+        status_layout.setContentsMargins(6, 0, 6, 0)
+        status_layout.setSpacing(6)
 
+        self.status_dot = QLabel(self.status_container)
+        self.status_dot.setFixedSize(7, 7)
+        self.status_dot.setStyleSheet("background-color: #34C759; border-radius: 3px;")
+        status_layout.addWidget(self.status_dot)
+
+        self.save_status = QLabel("Saved", self.status_container)
+        self.save_status.setStyleSheet("font-size: 11px; font-weight: 500; color: #8E8E93;")
+        status_layout.addWidget(self.save_status)
+
+        top_bar.addWidget(self.status_container)
         top_bar.addStretch()
+
+        # View mode selector (Write / Split / Preview)
+        mode_box = QFrame(self)
+        mode_box.setStyleSheet("background: transparent;")
+        mode_layout = QHBoxLayout(mode_box)
+        mode_layout.setContentsMargins(0, 0, 0, 0)
+        mode_layout.setSpacing(2)
+
+        self.btn_mode_write = QPushButton("Write", mode_box)
+        self.btn_mode_write.setProperty("class", "segmentedTab")
+        self.btn_mode_write.setFixedHeight(28)
+        self.btn_mode_write.setCursor(Qt.PointingHandCursor)
+        self.btn_mode_write.clicked.connect(lambda: self.set_view_mode("write"))
+        mode_layout.addWidget(self.btn_mode_write)
+
+        self.btn_mode_split = QPushButton("Split", mode_box)
+        self.btn_mode_split.setProperty("class", "segmentedTab")
+        self.btn_mode_split.setFixedHeight(28)
+        self.btn_mode_split.setCursor(Qt.PointingHandCursor)
+        self.btn_mode_split.clicked.connect(lambda: self.set_view_mode("split"))
+        mode_layout.addWidget(self.btn_mode_split)
+
+        self.btn_mode_preview = QPushButton("Preview", mode_box)
+        self.btn_mode_preview.setProperty("class", "segmentedTab")
+        self.btn_mode_preview.setFixedHeight(28)
+        self.btn_mode_preview.setCursor(Qt.PointingHandCursor)
+        self.btn_mode_preview.clicked.connect(lambda: self.set_view_mode("preview"))
+        mode_layout.addWidget(self.btn_mode_preview)
+
+        top_bar.addWidget(mode_box)
 
         # Pin toggle button
         self.pin_btn = QPushButton(self)
         self.pin_btn.setProperty("class", "iconBtn")
-        self.pin_btn.setFixedSize(32, 32)
+        self.pin_btn.setFixedSize(30, 30)
         self.pin_btn.setToolTip("Pin Note")
         self.pin_btn.setCursor(Qt.PointingHandCursor)
         self.pin_btn.clicked.connect(self._toggle_pin)
@@ -100,7 +141,7 @@ class EditorView(QWidget):
         # Favorite toggle button
         self.fav_btn = QPushButton(self)
         self.fav_btn.setProperty("class", "iconBtn")
-        self.fav_btn.setFixedSize(32, 32)
+        self.fav_btn.setFixedSize(30, 30)
         self.fav_btn.setToolTip("Favorite Note")
         self.fav_btn.setCursor(Qt.PointingHandCursor)
         self.fav_btn.clicked.connect(self._toggle_favorite)
@@ -109,7 +150,7 @@ class EditorView(QWidget):
         # Archive button
         self.archive_btn = QPushButton(self)
         self.archive_btn.setProperty("class", "iconBtn")
-        self.archive_btn.setFixedSize(32, 32)
+        self.archive_btn.setFixedSize(30, 30)
         self.archive_btn.setToolTip("Archive Note")
         self.archive_btn.setCursor(Qt.PointingHandCursor)
         self.archive_btn.clicked.connect(self._toggle_archive)
@@ -118,7 +159,7 @@ class EditorView(QWidget):
         # Delete button
         self.delete_btn = QPushButton(self)
         self.delete_btn.setProperty("class", "iconBtn")
-        self.delete_btn.setFixedSize(32, 32)
+        self.delete_btn.setFixedSize(30, 30)
         self.delete_btn.setToolTip("Delete Note")
         self.delete_btn.setCursor(Qt.PointingHandCursor)
         self.delete_btn.clicked.connect(self._delete_note)
@@ -135,72 +176,111 @@ class EditorView(QWidget):
 
         # 3. Formatting Toolbar
         self.toolbar = EditorToolbar(parent=self)
-        self.toolbar.preview_toggled.connect(self._on_preview_toggled)
+        self.toolbar.preview_toggled.connect(self._on_toolbar_preview_toggle)
         main_layout.addWidget(self.toolbar)
 
-        # 4. Editor / Preview stack or side-by-side
-        self.editor_content = QPlainTextEdit(self)
+        # 4. Content Area: Splitter hosting Editor and Preview Browser
+        self.splitter = QSplitter(Qt.Horizontal, self)
+        self.splitter.setChildrenCollapsible(False)
+        self.splitter.setStyleSheet("""
+            QSplitter::handle {
+                background-color: transparent;
+                width: 6px;
+            }
+        """)
+
+        self.editor_content = QPlainTextEdit(self.splitter)
         self.editor_content.setObjectName("editorContentInput")
         self.editor_content.setPlaceholderText("Start typing note content here... (Markdown supported)")
         self.editor_content.textChanged.connect(self._on_content_changed)
         self.toolbar.set_editor(self.editor_content)
+        self.splitter.addWidget(self.editor_content)
 
-        self.preview_browser = QTextBrowser(self)
+        self.preview_browser = QTextBrowser(self.splitter)
         self.preview_browser.setObjectName("markdownPreview")
         self.preview_browser.setOpenExternalLinks(True)
+        self.splitter.addWidget(self.preview_browser)
 
-        self.content_stack = QStackedWidget(self)
-        self.content_stack.addWidget(self.editor_content)
-        self.content_stack.addWidget(self.preview_browser)
-        main_layout.addWidget(self.content_stack, 1)
+        main_layout.addWidget(self.splitter, 1)
+
+        self.set_view_mode("write")
 
     def _setup_shortcuts(self):
-        # Ctrl/Cmd+S: Force save immediately
         save_sc = QShortcut(QKeySequence.Save, self)
         save_sc.activated.connect(self.save_immediately)
 
-        # Ctrl/Cmd+B: Bold
         bold_sc = QShortcut(QKeySequence("Ctrl+B"), self)
         bold_sc.activated.connect(lambda: self.toolbar._wrap_selection("**", "**"))
 
-        # Ctrl/Cmd+I: Italic
         italic_sc = QShortcut(QKeySequence("Ctrl+I"), self)
         italic_sc.activated.connect(lambda: self.toolbar._wrap_selection("*", "*"))
 
     def _setup_debouncer(self):
         self.save_debouncer = Debouncer(delay_ms=600, callback=self._perform_save, parent=self)
 
+    def set_view_mode(self, mode: str):
+        """Switches between 'write', 'split', and 'preview' modes."""
+        self._mode = mode
+        self.btn_mode_write.setProperty("active", "true" if mode == "write" else "false")
+        self.btn_mode_split.setProperty("active", "true" if mode == "split" else "false")
+        self.btn_mode_preview.setProperty("active", "true" if mode == "preview" else "false")
+        self.btn_mode_write.style().polish(self.btn_mode_write)
+        self.btn_mode_split.style().polish(self.btn_mode_split)
+        self.btn_mode_preview.style().polish(self.btn_mode_preview)
+
+        if mode == "write":
+            self.editor_content.setVisible(True)
+            self.preview_browser.setVisible(False)
+            self.editor_content.setFocus()
+        elif mode == "preview":
+            self._render_markdown()
+            self.editor_content.setVisible(False)
+            self.preview_browser.setVisible(True)
+        elif mode == "split":
+            self._render_markdown()
+            self.editor_content.setVisible(True)
+            self.preview_browser.setVisible(True)
+            # Give equal halves
+            half = self.splitter.width() // 2 if self.splitter.width() > 0 else 400
+            self.splitter.setSizes([half, half])
+            self.editor_content.setFocus()
+
+    def _on_toolbar_preview_toggle(self, is_preview: bool):
+        self.set_view_mode("preview" if is_preview else "write")
+
+    def _render_markdown(self):
+        content = self.editor_content.toPlainText()
+        theme = ThemeManager.instance().current_theme
+        html_content = markdown_to_html(content, theme=theme)
+        self.preview_browser.setHtml(html_content)
+
     def load_note(self, note_id: int):
         """Loads a note into the editor."""
         self._is_loading = True
         self.current_note = self.note_service.get_note(note_id)
 
-        # Refresh categories in dropdown
         self._populate_categories()
 
         if self.current_note:
             self.title_input.setText(self.current_note.title)
             self.editor_content.setPlainText(self.current_note.content)
 
-            # Select category
             for i in range(self.cat_combo.count()):
                 if self.cat_combo.itemData(i) == self.current_note.category_id:
                     self.cat_combo.setCurrentIndex(i)
                     break
 
-            # Archive button text & tooltip
             if self.current_note.is_archived:
                 self.archive_btn.setToolTip("Restore Note")
             else:
                 self.archive_btn.setToolTip("Archive Note")
 
-        self.save_status.setText("Saved")
+        self._set_save_status(saved=True)
         self._update_icons()
         self._is_loading = False
 
-        # Reset preview mode to edit
-        self.content_stack.setCurrentIndex(0)
-        self._is_preview_mode = False
+        # Default to write mode
+        self.set_view_mode("write")
 
     def _populate_categories(self):
         self.cat_combo.blockSignals(True)
@@ -210,11 +290,21 @@ class EditorView(QWidget):
             self.cat_combo.addItem(cat.name, userData=cat.id)
         self.cat_combo.blockSignals(False)
 
+    def _set_save_status(self, saved: bool):
+        if saved:
+            self.status_dot.setStyleSheet("background-color: #34C759; border-radius: 3px;")
+            self.save_status.setText("Saved")
+        else:
+            self.status_dot.setStyleSheet("background-color: #E67700; border-radius: 3px;")
+            self.save_status.setText("Saving...")
+
     def _on_content_changed(self):
         if self._is_loading or not self.current_note:
             return
-        self.save_status.setText("Saving...")
+        self._set_save_status(saved=False)
         self.save_debouncer.call()
+        if self._mode in ("split", "preview"):
+            self._render_markdown()
 
     def _on_category_changed(self, idx: int):
         if self._is_loading or not self.current_note:
@@ -242,12 +332,16 @@ class EditorView(QWidget):
         self.current_note.content = content
         self.current_note.category_id = cat_id
 
-        self.save_status.setText("Saved")
+        self._set_save_status(saved=True)
         self.note_saved.emit(self.current_note.id)
 
     def save_immediately(self):
         """Immediately triggers save."""
         self.save_debouncer.trigger_now()
+
+    def _on_back_clicked(self):
+        self.save_immediately()
+        self.back_requested.emit()
 
     def _toggle_pin(self):
         if not self.current_note:
@@ -297,26 +391,11 @@ class EditorView(QWidget):
             self.note_deleted.emit(note_id)
             self.back_requested.emit()
 
-    def _on_preview_toggled(self, is_preview: bool):
-        self._is_preview_mode = is_preview
-        if is_preview:
-            # Render markdown to HTML and switch stack
-            content = self.editor_content.toPlainText()
-            theme = ThemeManager.instance().current_theme
-            html_content = markdown_to_html(content, theme=theme)
-            self.preview_browser.setHtml(html_content)
-            self.content_stack.setCurrentIndex(1)
-        else:
-            self.content_stack.setCurrentIndex(0)
-            self.editor_content.setFocus()
-
     def _on_theme_changed(self, theme_name: str = ""):
         try:
             self._update_icons()
-            if self._is_preview_mode:
-                content = self.editor_content.toPlainText()
-                html_content = markdown_to_html(content, theme=theme_name)
-                self.preview_browser.setHtml(html_content)
+            if self._mode in ("split", "preview"):
+                self._render_markdown()
         except RuntimeError:
             pass
 
@@ -331,23 +410,29 @@ class EditorView(QWidget):
 
             if self.current_note:
                 if self.current_note.is_pinned:
-                    self.pin_btn.setIcon(get_icon("pin", color=accent_color, fill=accent_color, size=16))
+                    self.pin_btn.setIcon(get_icon("pin", color=accent_color, fill=accent_color, size=15))
                     self.pin_btn.setProperty("active", "true")
                 else:
-                    self.pin_btn.setIcon(get_icon("pin", color=icon_color, fill="none", size=16))
+                    self.pin_btn.setIcon(get_icon("pin", color=icon_color, fill="none", size=15))
                     self.pin_btn.setProperty("active", "false")
 
                 if self.current_note.is_favorite:
-                    self.fav_btn.setIcon(get_icon("favorites", color=gold_color, fill=gold_color, size=16))
+                    self.fav_btn.setIcon(get_icon("favorites", color=gold_color, fill=gold_color, size=15))
                     self.fav_btn.setProperty("active", "true")
                 else:
-                    self.fav_btn.setIcon(get_icon("favorites", color=icon_color, fill="none", size=16))
+                    self.fav_btn.setIcon(get_icon("favorites", color=icon_color, fill="none", size=15))
                     self.fav_btn.setProperty("active", "false")
 
-                self.archive_btn.setIcon(get_icon("archived", color=icon_color, size=16))
-                self.delete_btn.setIcon(get_icon("trash", color=theme.get_color("danger"), size=16))
+                self.archive_btn.setIcon(get_icon("archived", color=icon_color, size=15))
+                self.delete_btn.setIcon(get_icon("trash", color=theme.get_color("danger"), size=15))
 
                 self.pin_btn.style().polish(self.pin_btn)
                 self.fav_btn.style().polish(self.fav_btn)
         except RuntimeError:
             pass
+
+    def resizeEvent(self, event: QResizeEvent):
+        super().resizeEvent(event)
+        # If window gets narrower than 950px, disable split view automatically to prevent text clipping
+        if self.width() < 950 and self._mode == "split":
+            self.set_view_mode("write")

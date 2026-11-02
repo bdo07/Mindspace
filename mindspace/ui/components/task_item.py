@@ -6,18 +6,19 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QPushButton,
+    QSizePolicy,
     QVBoxLayout,
     QWidget,
 )
 
 from mindspace.models.task import Task
-from mindspace.ui.assets.icons import get_icon
+from mindspace.ui.assets.icons import get_icon, render_svg_pixmap
 from mindspace.ui.themes.theme_manager import ThemeManager
 from mindspace.utils.date_utils import format_due_date
 
 
 class TaskItem(QFrame):
-    """Component representing a single task in the task list."""
+    """Component representing a single task row in the task list."""
 
     status_toggled = Signal(int)
     edit_requested = Signal(int)
@@ -26,6 +27,8 @@ class TaskItem(QFrame):
     def __init__(self, task: Task, parent=None):
         super().__init__(parent)
         self.task = task
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+
         self._setup_ui()
         self._update_icons()
 
@@ -34,20 +37,21 @@ class TaskItem(QFrame):
         self.setProperty("class", "taskItemCompleted" if is_done else "taskItem")
 
         main_layout = QHBoxLayout(self)
-        main_layout.setContentsMargins(12, 10, 12, 10)
-        main_layout.setSpacing(12)
+        main_layout.setContentsMargins(12, 9, 12, 9)
+        main_layout.setSpacing(10)
 
-        # Checkbox Button (Custom circular check)
+        # 1. Checkbox Button
         self.check_btn = QPushButton(self)
-        self.check_btn.setFixedSize(22, 22)
+        self.check_btn.setFixedSize(20, 20)
         self.check_btn.setCursor(Qt.PointingHandCursor)
+        self.check_btn.setToolTip("Mark as completed" if not is_done else "Mark as pending")
         self._style_check_btn()
         self.check_btn.clicked.connect(self._on_check_clicked)
         main_layout.addWidget(self.check_btn)
 
-        # Content: Title & optional description
+        # 2. Text layout (Title and optional description)
         text_layout = QVBoxLayout()
-        text_layout.setSpacing(3)
+        text_layout.setSpacing(2)
 
         self.title_label = QLabel(self.task.title, self)
         self.title_label.setProperty("class", "taskTitleCompleted" if is_done else "taskTitle")
@@ -62,9 +66,24 @@ class TaskItem(QFrame):
 
         main_layout.addLayout(text_layout, 1)
 
-        # Badges layout
+        # 3. Badges Layout (Due date, Priority, Category)
         badge_layout = QHBoxLayout()
-        badge_layout.setSpacing(8)
+        badge_layout.setSpacing(6)
+
+        # Priority tag if high
+        if self.task.priority == "high" and not is_done:
+            self.prio_badge = QLabel("High", self)
+            self.prio_badge.setStyleSheet("""
+                QLabel {
+                    background-color: #FFE3E3;
+                    color: #D63031;
+                    border-radius: 4px;
+                    padding: 2px 6px;
+                    font-size: 10px;
+                    font-weight: 700;
+                }
+            """)
+            badge_layout.addWidget(self.prio_badge)
 
         # Due Date Badge
         if self.task.due_date and not is_done:
@@ -75,16 +94,16 @@ class TaskItem(QFrame):
 
         # Category Pill
         if self.task.category_name:
-            color = self.task.category_color or "#8B79D9"
+            color = self.task.category_color or "#7059C8"
             self.cat_pill = QLabel(f" {self.task.category_name} ", self)
             self.cat_pill.setStyleSheet(f"""
                 QLabel {{
-                    background-color: {color}22;
+                    background-color: {color}18;
                     color: {color};
-                    border: 1px solid {color}55;
-                    border-radius: 9px;
+                    border: 1px solid {color}44;
+                    border-radius: 8px;
                     padding: 1px 6px;
-                    font-size: 11px;
+                    font-size: 10px;
                     font-weight: 600;
                 }}
             """)
@@ -92,7 +111,7 @@ class TaskItem(QFrame):
 
         main_layout.addLayout(badge_layout)
 
-        # Action Buttons
+        # 4. Action Buttons (Edit, Delete)
         self.edit_btn = QPushButton(self)
         self.edit_btn.setProperty("class", "iconBtn")
         self.edit_btn.setFixedSize(26, 26)
@@ -110,37 +129,43 @@ class TaskItem(QFrame):
         main_layout.addWidget(self.del_btn)
 
     def _style_check_btn(self):
-        theme = ThemeManager.instance()
-        accent = theme.get_color("accent")
-        border = theme.get_color("border")
-        if self.task.is_completed:
-            self.check_btn.setStyleSheet(f"""
-                QPushButton {{
-                    background-color: {accent};
-                    border: 1.5px solid {accent};
-                    border-radius: 11px;
-                }}
-            """)
-            self.check_btn.setIcon(get_icon("check", color="#FFFFFF", size=13))
-        else:
-            self.check_btn.setStyleSheet(f"""
-                QPushButton {{
-                    background-color: transparent;
-                    border: 1.5px solid {border};
-                    border-radius: 11px;
-                }}
-                QPushButton:hover {{
-                    border-color: {accent};
-                }}
-            """)
-            self.check_btn.setIcon(get_icon("check", color="transparent", size=13))
+        try:
+            theme = ThemeManager.instance()
+            accent = theme.get_color("accent")
+            border = theme.get_color("border")
+            if self.task.is_completed:
+                self.check_btn.setStyleSheet(f"""
+                    QPushButton {{
+                        background-color: {accent};
+                        border: 1.5px solid {accent};
+                        border-radius: 10px;
+                    }}
+                """)
+                self.check_btn.setIcon(get_icon("check", color="#FFFFFF", size=12))
+            else:
+                self.check_btn.setStyleSheet(f"""
+                    QPushButton {{
+                        background-color: transparent;
+                        border: 1.5px solid {border};
+                        border-radius: 10px;
+                    }}
+                    QPushButton:hover {{
+                        border-color: {accent};
+                    }}
+                """)
+                self.check_btn.setIcon(get_icon("check", color="transparent", size=12))
+        except RuntimeError:
+            pass
 
     def _update_icons(self):
-        theme = ThemeManager.instance()
-        icon_color = theme.get_color("icon")
-        self.edit_btn.setIcon(get_icon("edit", color=icon_color, size=14))
-        self.del_btn.setIcon(get_icon("trash", color=icon_color, size=14))
-        self._style_check_btn()
+        try:
+            theme = ThemeManager.instance()
+            icon_color = theme.get_color("icon")
+            self.edit_btn.setIcon(get_icon("edit", color=icon_color, size=13))
+            self.del_btn.setIcon(get_icon("trash", color=theme.get_color("danger"), size=13))
+            self._style_check_btn()
+        except RuntimeError:
+            pass
 
     def _on_check_clicked(self):
         if self.task.id:
