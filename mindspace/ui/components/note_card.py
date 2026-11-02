@@ -6,6 +6,7 @@ from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
+    QMenu,
     QPushButton,
     QSizePolicy,
     QVBoxLayout,
@@ -23,6 +24,7 @@ class NoteCard(QFrame):
 
     clicked = Signal(int)
     favorite_toggled = Signal(int)
+    pin_toggled = Signal(int)
     archive_requested = Signal(int)
     delete_requested = Signal(int)
 
@@ -137,3 +139,23 @@ class NoteCard(QFrame):
                 if self.note.id:
                     self.clicked.emit(self.note.id)
         super().mousePressEvent(event)
+
+    def contextMenuEvent(self, event):
+        if not self.note or not self.note.id:
+            return
+        menu = QMenu(self)
+        pin_act = menu.addAction("Unpin Note" if self.note.is_pinned else "Pin Note")
+        fav_act = menu.addAction("Remove from Favorites" if self.note.is_favorite else "Add to Favorites")
+        arch_act = menu.addAction("Restore Note" if self.note.is_archived else "Archive Note")
+        menu.addSeparator()
+        del_act = menu.addAction("Delete Note")
+
+        action = menu.exec(event.globalPos())
+        if action == pin_act:
+            self.pin_toggled.emit(self.note.id)
+        elif action == fav_act:
+            self.favorite_toggled.emit(self.note.id)
+        elif action == arch_act:
+            self.archive_requested.emit(self.note.id)
+        elif action == del_act:
+            self.delete_requested.emit(self.note.id)
