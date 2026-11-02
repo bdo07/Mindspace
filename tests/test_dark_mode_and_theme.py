@@ -2,10 +2,12 @@
 
 import os
 import shutil
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QApplication, QLabel
 
 from mindspace.database.connection import DatabaseConnection
@@ -33,6 +35,8 @@ class TestDarkModeAndTheme(unittest.TestCase):
     def setUpClass(cls):
         os.environ["QT_QPA_PLATFORM"] = "offscreen"
         cls.app = QApplication.instance() or QApplication([])
+        font_family = ".AppleSystemUIFont" if sys.platform == "darwin" else "Segoe UI"
+        cls.app.setFont(QFont(font_family, 10))
 
     def setUp(self):
         self.test_dir = tempfile.mkdtemp()

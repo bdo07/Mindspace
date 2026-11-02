@@ -9,6 +9,7 @@ from pathlib import Path
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
 from PySide6.QtCore import QDate, Qt
+from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QApplication
 
 from mindspace.database.connection import DatabaseConnection
@@ -23,6 +24,8 @@ class TestEndToEndWorkflow(unittest.TestCase):
             cls.app = QApplication(sys.argv)
         else:
             cls.app = QApplication.instance()
+        font_family = ".AppleSystemUIFont" if sys.platform == "darwin" else "Segoe UI"
+        cls.app.setFont(QFont(font_family, 10))
 
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()

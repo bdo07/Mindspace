@@ -55,7 +55,7 @@ def markdown_to_html(md_text: str, theme: str = "light") -> str:
         body {{
             background-color: {bg_color};
             color: {text_color};
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Inter, Arial, sans-serif;
+            font-family: ".AppleSystemUIFont", "Segoe UI", Roboto, "Helvetica Neue", Inter, Arial;
             font-size: 15px;
             line-height: 1.65;
             margin: 0;
