@@ -275,6 +275,9 @@ class NotesView(QWidget):
             card = NoteCard(note, self.grid_container)
             card.clicked.connect(self.note_selected.emit)
             card.favorite_toggled.connect(self._on_toggle_fav)
+            card.pin_toggled.connect(self._on_toggle_pin)
+            card.archive_requested.connect(self._on_toggle_archive)
+            card.delete_requested.connect(self._on_delete_note)
 
             row = idx // self._current_cols
             col = idx % self._current_cols
@@ -285,6 +288,36 @@ class NotesView(QWidget):
         self.note_service.toggle_favorite(note_id)
         self.note_updated.emit()
         self.refresh()
+
+    def _on_toggle_pin(self, note_id: int):
+        self.note_service.toggle_pin(note_id)
+        self.note_updated.emit()
+        self.refresh()
+
+    def _on_toggle_archive(self, note_id: int):
+        note = self.note_service.get_note(note_id)
+        if note:
+            if note.is_archived:
+                self.note_service.restore_note(note_id)
+            else:
+                self.note_service.archive_note(note_id)
+            self.note_updated.emit()
+            self.refresh()
+
+    def _on_delete_note(self, note_id: int):
+        note = self.note_service.get_note(note_id)
+        title = note.title if note else "this note"
+        confirmed = ConfirmDialog.ask(
+            self,
+            title="Delete Note",
+            message=f"Are you sure you want to delete '{title}'? This action cannot be undone.",
+            confirm_label="Delete",
+            is_danger=True,
+        )
+        if confirmed:
+            self.note_service.delete_note(note_id)
+            self.note_updated.emit()
+            self.refresh()
 
     def _on_search(self, query: str):
         self.current_search = query

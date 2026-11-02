@@ -6,6 +6,7 @@ from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
+    QMenu,
     QPushButton,
     QScrollArea,
     QVBoxLayout,
@@ -22,6 +23,8 @@ class Sidebar(QWidget):
 
     nav_changed = Signal(str)  # 'notes', 'quick', 'tasks', 'favorites', 'archived', 'settings', 'category:<id>'
     add_category_clicked = Signal()
+    edit_category_requested = Signal(int)
+    delete_category_requested = Signal(int)
     theme_toggle_clicked = Signal()
     collapse_toggled = Signal(bool)
 
@@ -299,10 +302,24 @@ class Sidebar(QWidget):
 
             cat_key = f"category:{cat.id}"
             btn.clicked.connect(lambda checked=False, k=cat_key: self._on_btn_clicked(k))
+            btn.setContextMenuPolicy(Qt.CustomContextMenu)
+            btn.customContextMenuRequested.connect(
+                lambda pos, b=btn, c=cat: self._show_cat_context_menu(b, pos, c)
+            )
             self.cat_layout.addWidget(btn)
             self._category_buttons[cat.id] = btn
 
         self.cat_layout.addStretch()
+
+    def _show_cat_context_menu(self, btn: QPushButton, pos, cat: Category):
+        menu = QMenu(btn)
+        edit_act = menu.addAction("Edit Category...")
+        del_act = menu.addAction("Delete Category")
+        action = menu.exec(btn.mapToGlobal(pos))
+        if action == edit_act:
+            self.edit_category_requested.emit(cat.id)
+        elif action == del_act:
+            self.delete_category_requested.emit(cat.id)
 
     def toggle_collapse(self):
         self.set_collapsed(not self.is_collapsed)

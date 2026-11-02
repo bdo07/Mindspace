@@ -20,6 +20,7 @@ from mindspace.services.task_service import TaskService
 from mindspace.ui.components.sidebar import Sidebar
 from mindspace.ui.components.toast import Toast
 from mindspace.ui.dialogs.category_dialog import CategoryDialog
+from mindspace.ui.dialogs.confirm_dialog import ConfirmDialog
 from mindspace.ui.themes.theme_manager import ThemeManager
 from mindspace.ui.views.editor_view import EditorView
 from mindspace.ui.views.notes_view import NotesView
@@ -70,6 +71,8 @@ class MainWindow(QMainWindow):
         self.sidebar = Sidebar(self)
         self.sidebar.nav_changed.connect(self._on_navigation_changed)
         self.sidebar.add_category_clicked.connect(self._on_add_category)
+        self.sidebar.edit_category_requested.connect(self._on_edit_category)
+        self.sidebar.delete_category_requested.connect(self._on_delete_category)
         self.sidebar.theme_toggle_clicked.connect(self._on_toggle_theme)
         self.sidebar.collapse_toggled.connect(self._on_sidebar_collapse_toggled)
         root_layout.addWidget(self.sidebar)
@@ -240,6 +243,45 @@ class MainWindow(QMainWindow):
                 self.category_service.create_category(name=name, color=color)
                 self._refresh_categories()
                 self.toast.show_message(f"Category '{name}' created")
+            except Exception as e:
+                self.toast.show_message(f"Error: {str(e)}", is_error=True)
+
+    def _on_edit_category(self, cat_id: int):
+        cat = self.category_service.get_category(cat_id)
+        if not cat:
+            return
+        dlg = CategoryDialog(category=cat, parent=self)
+        if dlg.exec():
+            name, color = dlg.get_data()
+            try:
+                self.category_service.update_category(cat_id, name=name, color=color)
+                self._refresh_categories()
+                self._update_sidebar_counts()
+                if hasattr(self, "category_notes_view") and self.category_notes_view.category_id == cat_id:
+                    self.category_notes_view.refresh()
+                self.toast.show_message(f"Category '{name}' updated")
+            except Exception as e:
+                self.toast.show_message(f"Error: {str(e)}", is_error=True)
+
+    def _on_delete_category(self, cat_id: int):
+        cat = self.category_service.get_category(cat_id)
+        if not cat:
+            return
+        confirmed = ConfirmDialog.ask(
+            self,
+            title="Delete Category",
+            message=f"Are you sure you want to delete category '{cat.name}'? Notes and tasks in this category will not be deleted.",
+            confirm_label="Delete",
+            is_danger=True,
+        )
+        if confirmed:
+            try:
+                self.category_service.delete_category(cat_id)
+                if hasattr(self, "category_notes_view") and self.category_notes_view.category_id == cat_id:
+                    self._on_navigation_changed("notes")
+                self._refresh_categories()
+                self._update_sidebar_counts()
+                self.toast.show_message(f"Category '{cat.name}' deleted")
             except Exception as e:
                 self.toast.show_message(f"Error: {str(e)}", is_error=True)
 
