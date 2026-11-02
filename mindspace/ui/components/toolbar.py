@@ -139,5 +139,6 @@ class EditorToolbar(QFrame):
         else:
             self.btn_preview.setText("Preview")
             self.btn_preview.setProperty("active", "false")
+        self.btn_preview.style().unpolish(self.btn_preview)
         self.btn_preview.style().polish(self.btn_preview)
         self.preview_toggled.emit(self.is_preview_mode)
