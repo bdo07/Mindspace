@@ -1,4 +1,4 @@
-"""Tasks view with interactive checklist, quick-add, and progress tracking."""
+"""Tasks view with interactive checklist, modal creation, and separated status sections."""
 
 from typing import Dict, List, Optional
 from PySide6.QtCore import Qt, Signal
@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QProgressBar,
     QPushButton,
     QScrollArea,
+    QSizePolicy,
     QVBoxLayout,
     QWidget,
 )
@@ -27,7 +28,7 @@ from mindspace.ui.themes.theme_manager import ThemeManager
 
 
 class TasksView(QWidget):
-    """View managing tasks with inline quick-add, filtering, and completion stats."""
+    """View managing tasks with proper modal dialogs, status separation, and progress tracking."""
 
     counts_changed = Signal()
 
@@ -57,20 +58,32 @@ class TasksView(QWidget):
 
     def _setup_ui(self):
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(28, 24, 28, 24)
-        main_layout.setSpacing(16)
+        main_layout.setContentsMargins(24, 20, 24, 20)
+        main_layout.setSpacing(14)
 
-        # 1. Header
-        header_layout = QVBoxLayout()
-        header_layout.setSpacing(2)
+        # 1. Header (Title, Subtitle, + Add Task Button)
+        header_layout = QHBoxLayout()
+        header_layout.setSpacing(10)
+
+        title_col = QVBoxLayout()
+        title_col.setSpacing(2)
 
         title = QLabel("Tasks", self)
         title.setObjectName("pageTitle")
-        header_layout.addWidget(title)
+        title_col.addWidget(title)
 
         self.subtitle = QLabel("Organize your daily priorities and actions.", self)
         self.subtitle.setObjectName("pageSubtitle")
-        header_layout.addWidget(self.subtitle)
+        title_col.addWidget(self.subtitle)
+
+        header_layout.addLayout(title_col, 1)
+
+        self.new_task_btn = QPushButton("Add Task", self)
+        self.new_task_btn.setProperty("class", "primaryBtn")
+        self.new_task_btn.setFixedHeight(34)
+        self.new_task_btn.setCursor(Qt.PointingHandCursor)
+        self.new_task_btn.clicked.connect(self._open_new_task_dialog)
+        header_layout.addWidget(self.new_task_btn)
 
         main_layout.addLayout(header_layout)
 
@@ -78,41 +91,36 @@ class TasksView(QWidget):
         add_bar = QFrame(self)
         add_bar.setObjectName("quickAddBar")
         add_bar_layout = QHBoxLayout(add_bar)
-        add_bar_layout.setContentsMargins(12, 8, 12, 8)
-        add_bar_layout.setSpacing(10)
+        add_bar_layout.setContentsMargins(10, 6, 10, 6)
+        add_bar_layout.setSpacing(8)
 
         self.quick_input = QLineEdit(add_bar)
         self.quick_input.setProperty("class", "standardInput")
-        self.quick_input.setPlaceholderText("Add a new task... (Press Enter to create)")
+        self.quick_input.setPlaceholderText("Quick add task title... (Press Enter)")
         self.quick_input.returnPressed.connect(self._on_quick_add)
         add_bar_layout.addWidget(self.quick_input, 1)
 
         self.cat_select = QComboBox(add_bar)
         self.cat_select.setProperty("class", "standardInput")
-        self.cat_select.setFixedHeight(36)
-        self.cat_select.setMinimumWidth(130)
+        self.cat_select.setFixedHeight(34)
+        self.cat_select.setMinimumWidth(120)
         add_bar_layout.addWidget(self.cat_select)
 
-        self.add_btn = QPushButton("Add Task", add_bar)
-        self.add_btn.setProperty("class", "primaryBtn")
-        self.add_btn.setFixedHeight(36)
-        self.add_btn.setCursor(Qt.PointingHandCursor)
-        self.add_btn.clicked.connect(self._on_quick_add)
-        add_bar_layout.addWidget(self.add_btn)
+        self.quick_add_btn = QPushButton("Add", add_bar)
+        self.quick_add_btn.setProperty("class", "secondaryBtn")
+        self.quick_add_btn.setFixedHeight(34)
+        self.quick_add_btn.setCursor(Qt.PointingHandCursor)
+        self.quick_add_btn.clicked.connect(self._on_quick_add)
+        add_bar_layout.addWidget(self.quick_add_btn)
 
         main_layout.addWidget(add_bar)
 
-        # 3. Filter Segmented Tabs & Progress
-        stats_layout = QHBoxLayout()
-        stats_layout.setSpacing(12)
+        # 3. Filter Segmented Tabs & Progress Stats
+        filter_row = QHBoxLayout()
+        filter_row.setSpacing(10)
 
-        # Segmented Tabs
         tab_container = QFrame(self)
-        tab_container.setStyleSheet("""
-            QFrame {
-                background-color: transparent;
-            }
-        """)
+        tab_container.setStyleSheet("background-color: transparent;")
         tab_layout = QHBoxLayout(tab_container)
         tab_layout.setContentsMargins(0, 0, 0, 0)
         tab_layout.setSpacing(4)
@@ -135,24 +143,25 @@ class TasksView(QWidget):
         self.tab_completed.clicked.connect(lambda: self._set_filter(True))
         tab_layout.addWidget(self.tab_completed)
 
-        stats_layout.addWidget(tab_container)
-        stats_layout.addStretch()
+        filter_row.addWidget(tab_container)
+        filter_row.addStretch()
 
-        self.progress_lbl = QLabel("0% completed", self)
-        self.progress_lbl.setStyleSheet("font-size: 12px; font-weight: 600; color: #858585;")
-        stats_layout.addWidget(self.progress_lbl)
+        self.progress_lbl = QLabel("0/0 completed (0%)", self)
+        self.progress_lbl.setStyleSheet("font-size: 11px; font-weight: 600; color: #8E8E93;")
+        filter_row.addWidget(self.progress_lbl)
 
-        main_layout.addLayout(stats_layout)
+        main_layout.addLayout(filter_row)
 
         # 4. Scroll Area for task items
         self.scroll_area = QScrollArea(self)
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setStyleSheet("QScrollArea { border: none; background: transparent; }")
+        self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
         self.tasks_container = QWidget()
         self.tasks_container.setStyleSheet("background: transparent;")
         self.tasks_layout = QVBoxLayout(self.tasks_container)
-        self.tasks_layout.setContentsMargins(0, 4, 0, 16)
+        self.tasks_layout.setContentsMargins(0, 2, 0, 16)
         self.tasks_layout.setSpacing(8)
         self.tasks_layout.addStretch()
 
@@ -174,10 +183,17 @@ class TasksView(QWidget):
         empty_title.setAlignment(Qt.AlignCenter)
         empty_layout.addWidget(empty_title)
 
-        empty_desc = QLabel("You're all caught up! Add a new task above.", self.empty_state)
+        empty_desc = QLabel("You're all caught up! Add a new task to stay organized.", self.empty_state)
         empty_desc.setProperty("class", "emptyStateText")
         empty_desc.setAlignment(Qt.AlignCenter)
         empty_layout.addWidget(empty_desc)
+
+        self.empty_btn = QPushButton("Create Task", self.empty_state)
+        self.empty_btn.setProperty("class", "primaryBtn")
+        self.empty_btn.setFixedHeight(34)
+        self.empty_btn.setCursor(Qt.PointingHandCursor)
+        self.empty_btn.clicked.connect(self._open_new_task_dialog)
+        empty_layout.addWidget(self.empty_btn, 0, Qt.AlignCenter)
 
         self.empty_state.setVisible(False)
         main_layout.addWidget(self.empty_state, 1)
@@ -192,6 +208,22 @@ class TasksView(QWidget):
             btn.setProperty("active", "true" if is_active else "false")
             btn.style().polish(btn)
 
+    def _open_new_task_dialog(self):
+        """Opens modal task creation dialog with full validation."""
+        categories = self.category_service.list_categories()
+        dlg = TaskDialog(task=None, categories=categories, parent=self)
+        if dlg.exec():
+            data = dlg.get_data()
+            self.task_service.create_task(
+                title=data["title"],
+                description=data["description"],
+                due_date=data["due_date"],
+                priority=data["priority"],
+                category_id=data["category_id"],
+            )
+            self.refresh()
+            self.counts_changed.emit()
+
     def refresh(self):
         self._update_tab_styles()
         self._populate_categories()
@@ -202,7 +234,6 @@ class TasksView(QWidget):
             item.deleteLater()
         self._task_items.clear()
 
-        # Remove stretch item
         while self.tasks_layout.count():
             widget_item = self.tasks_layout.takeAt(0)
             if widget_item.widget():
@@ -212,14 +243,28 @@ class TasksView(QWidget):
         all_tasks = self.task_service.list_tasks()
         total_count = len(all_tasks)
         completed_count = sum(1 for t in all_tasks if t.is_completed)
+        pending_count = total_count - completed_count
 
         pct = int((completed_count / total_count * 100)) if total_count > 0 else 0
         self.progress_lbl.setText(f"{completed_count}/{total_count} completed ({pct}%)")
 
-        # Filtered tasks for display
-        tasks = [t for t in all_tasks if self.current_filter is None or t.is_completed == self.current_filter]
+        # Determine visible tasks based on filter
+        pending_tasks = [t for t in all_tasks if not t.is_completed]
+        done_tasks = [t for t in all_tasks if t.is_completed]
 
-        if not tasks:
+        if self.current_filter is False:
+            display_pending = pending_tasks
+            display_done = []
+        elif self.current_filter is True:
+            display_pending = []
+            display_done = done_tasks
+        else:
+            display_pending = pending_tasks
+            display_done = done_tasks
+
+        has_any = bool(display_pending or display_done)
+
+        if not has_any:
             self.scroll_area.setVisible(False)
             self.empty_state.setVisible(True)
             return
@@ -227,14 +272,35 @@ class TasksView(QWidget):
         self.scroll_area.setVisible(True)
         self.empty_state.setVisible(False)
 
-        for task in tasks:
-            item = TaskItem(task, self.tasks_container)
-            item.status_toggled.connect(self._on_toggle_status)
-            item.edit_requested.connect(self._on_edit_task)
-            item.delete_requested.connect(self._on_delete_task)
+        # Section: Pending Tasks
+        if display_pending:
+            if self.current_filter is None:
+                pending_header = QLabel(f"PENDING ({len(display_pending)})", self.tasks_container)
+                pending_header.setProperty("class", "sectionHeader")
+                self.tasks_layout.addWidget(pending_header)
 
-            self.tasks_layout.addWidget(item)
-            self._task_items.append(item)
+            for task in display_pending:
+                item = TaskItem(task, self.tasks_container)
+                item.status_toggled.connect(self._on_toggle_status)
+                item.edit_requested.connect(self._on_edit_task)
+                item.delete_requested.connect(self._on_delete_task)
+                self.tasks_layout.addWidget(item)
+                self._task_items.append(item)
+
+        # Section: Completed Tasks
+        if display_done:
+            if self.current_filter is None:
+                completed_header = QLabel(f"COMPLETED ({len(display_done)})", self.tasks_container)
+                completed_header.setProperty("class", "sectionHeader")
+                self.tasks_layout.addWidget(completed_header)
+
+            for task in display_done:
+                item = TaskItem(task, self.tasks_container)
+                item.status_toggled.connect(self._on_toggle_status)
+                item.edit_requested.connect(self._on_edit_task)
+                item.delete_requested.connect(self._on_delete_task)
+                self.tasks_layout.addWidget(item)
+                self._task_items.append(item)
 
         self.tasks_layout.addStretch()
 
@@ -254,7 +320,10 @@ class TasksView(QWidget):
     def _on_quick_add(self):
         title = self.quick_input.text().strip()
         if not title:
+            # If user clicked Add without typing, open full creation dialog!
+            self._open_new_task_dialog()
             return
+
         cat_id = self.cat_select.currentData()
         self.task_service.create_task(title=title, category_id=cat_id)
         self.quick_input.clear()
@@ -289,7 +358,7 @@ class TasksView(QWidget):
         confirmed = ConfirmDialog.ask(
             self,
             title="Delete Task",
-            message="Are you sure you want to delete this task?",
+            message="Are you sure you want to delete this task? This action cannot be undone.",
             confirm_label="Delete",
             is_danger=True,
         )
@@ -301,7 +370,8 @@ class TasksView(QWidget):
     def _update_icons(self):
         try:
             theme = ThemeManager.instance()
-            self.add_btn.setIcon(get_icon("plus", color="#FFFFFF", size=14))
+            self.new_task_btn.setIcon(get_icon("plus", color="#FFFFFF", size=14))
+            self.empty_btn.setIcon(get_icon("plus", color="#FFFFFF", size=14))
             self.empty_icon.setPixmap(render_svg_pixmap("tasks", color=theme.get_color("accent"), size=44))
         except RuntimeError:
             pass

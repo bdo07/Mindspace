@@ -1,4 +1,4 @@
-"""Note card component for grid/list display."""
+"""Note card component for grid/list display with high visual polish."""
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
@@ -6,18 +6,19 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QPushButton,
+    QSizePolicy,
     QVBoxLayout,
     QWidget,
 )
 
 from mindspace.models.note import Note
-from mindspace.ui.assets.icons import get_icon
+from mindspace.ui.assets.icons import get_icon, render_svg_pixmap
 from mindspace.ui.themes.theme_manager import ThemeManager
 from mindspace.utils.date_utils import format_relative_date
 
 
 class NoteCard(QFrame):
-    """Interactive card displaying a note preview."""
+    """Interactive card displaying a note preview with refined typography and states."""
 
     clicked = Signal(int)
     favorite_toggled = Signal(int)
@@ -28,47 +29,52 @@ class NoteCard(QFrame):
         super().__init__(parent)
         self.note = note
         self.setCursor(Qt.PointingHandCursor)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.setMinimumWidth(220)
+        self.setMinimumHeight(115)
+        self.setMaximumHeight(150)
 
         self._setup_ui()
         self._update_icons()
 
     def _setup_ui(self):
         self.setProperty("class", "noteCardPinned" if self.note.is_pinned else "noteCard")
-        self.setMinimumHeight(120)
-        self.setMaximumHeight(160)
 
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(14, 12, 14, 12)
         main_layout.setSpacing(6)
 
-        # Header: Pin indicator + Title + Favorite Button
+        # Header: Pin icon (if pinned) + Title + Favorite Star
         header_layout = QHBoxLayout()
         header_layout.setSpacing(6)
 
         if self.note.is_pinned:
             self.pin_label = QLabel(self)
-            self.pin_label.setFixedSize(16, 16)
+            self.pin_label.setFixedSize(14, 14)
             header_layout.addWidget(self.pin_label)
 
         self.title_label = QLabel(self.note.title or "Untitled Note", self)
         self.title_label.setProperty("class", "cardTitle")
         self.title_label.setWordWrap(False)
+        self.title_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         header_layout.addWidget(self.title_label, 1)
 
         self.fav_btn = QPushButton(self)
         self.fav_btn.setProperty("class", "iconBtn")
         self.fav_btn.setFixedSize(24, 24)
         self.fav_btn.setCursor(Qt.PointingHandCursor)
+        self.fav_btn.setToolTip("Mark Favorite")
         self.fav_btn.clicked.connect(self._on_fav_clicked)
         header_layout.addWidget(self.fav_btn)
 
         main_layout.addLayout(header_layout)
 
-        # Body: Snippet preview
+        # Body: Snippet preview (up to 2 lines)
         self.preview_label = QLabel(self.note.preview, self)
         self.preview_label.setProperty("class", "cardPreview")
         self.preview_label.setWordWrap(True)
-        self.preview_label.setMaximumHeight(44)
+        self.preview_label.setMaximumHeight(42)
+        self.preview_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         main_layout.addWidget(self.preview_label, 1)
 
         # Footer: Category Pill + Date
@@ -76,18 +82,16 @@ class NoteCard(QFrame):
         footer_layout.setSpacing(8)
 
         if self.note.category_name:
-            color = self.note.category_color or "#8B79D9"
+            color = self.note.category_color or "#7059C8"
             self.category_pill = QLabel(f" {self.note.category_name} ", self)
-            self.category_pill.setProperty("class", "categoryPill")
-            # Soft pastel background with category color border
             self.category_pill.setStyleSheet(f"""
                 QLabel {{
-                    background-color: {color}22;
+                    background-color: {color}18;
                     color: {color};
-                    border: 1px solid {color}55;
-                    border-radius: 9px;
+                    border: 1px solid {color}44;
+                    border-radius: 8px;
                     padding: 1px 6px;
-                    font-size: 11px;
+                    font-size: 10px;
                     font-weight: 600;
                 }}
             """)
@@ -101,20 +105,23 @@ class NoteCard(QFrame):
         main_layout.addLayout(footer_layout)
 
     def _update_icons(self):
-        theme = ThemeManager.instance()
-        gold_color = theme.get_color("icon_gold")
-        muted_color = theme.get_color("icon")
+        try:
+            theme = ThemeManager.instance()
+            gold_color = theme.get_color("icon_gold")
+            muted_color = theme.get_color("icon")
 
-        if self.note.is_pinned and hasattr(self, "pin_label"):
-            accent_color = theme.get_color("accent")
-            self.pin_label.setPixmap(
-                get_icon("pin", color=accent_color, fill=accent_color, size=14).pixmap(14, 14)
-            )
+            if self.note.is_pinned and hasattr(self, "pin_label"):
+                accent_color = theme.get_color("accent")
+                self.pin_label.setPixmap(
+                    render_svg_pixmap("pin", color=accent_color, fill=accent_color, size=13)
+                )
 
-        if self.note.is_favorite:
-            self.fav_btn.setIcon(get_icon("favorites", color=gold_color, fill=gold_color, size=15))
-        else:
-            self.fav_btn.setIcon(get_icon("favorites", color=muted_color, fill="none", size=15))
+            if self.note.is_favorite:
+                self.fav_btn.setIcon(get_icon("favorites", color=gold_color, fill=gold_color, size=14))
+            else:
+                self.fav_btn.setIcon(get_icon("favorites", color=muted_color, fill="none", size=14))
+        except RuntimeError:
+            pass
 
     def _on_fav_clicked(self):
         if self.note.id:
@@ -122,7 +129,6 @@ class NoteCard(QFrame):
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
-            # Check if clicked on fav_btn or its area
             child = self.childAt(event.pos())
             if child != self.fav_btn and not self.fav_btn.isAncestorOf(child):
                 if self.note.id:

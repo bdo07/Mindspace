@@ -1,7 +1,8 @@
-"""Notes view displaying searchable, sortable grid of note cards."""
+"""Notes view displaying searchable, sortable, responsive grid of note cards."""
 
 from typing import List, Optional
 from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QResizeEvent
 from PySide6.QtWidgets import (
     QComboBox,
     QGridLayout,
@@ -9,6 +10,7 @@ from PySide6.QtWidgets import (
     QLabel,
     QPushButton,
     QScrollArea,
+    QSizePolicy,
     QVBoxLayout,
     QWidget,
 )
@@ -20,12 +22,11 @@ from mindspace.services.note_service import NoteService
 from mindspace.ui.assets.icons import get_icon, render_svg_pixmap
 from mindspace.ui.components.note_card import NoteCard
 from mindspace.ui.components.search_bar import SearchBar
-from mindspace.ui.dialogs.confirm_dialog import ConfirmDialog
 from mindspace.ui.themes.theme_manager import ThemeManager
 
 
 class NotesView(QWidget):
-    """View showing notes in a grid with filters, search, and sorting."""
+    """View showing notes in an adaptive, responsive grid with filters, search, and sorting."""
 
     note_selected = Signal(int)
     new_note_requested = Signal()
@@ -49,6 +50,7 @@ class NotesView(QWidget):
         self.current_sort = "updated_at"
         self.current_sort_desc = True
         self.selected_filter_category_id: Optional[int] = category_id
+        self._current_cols = 2
 
         self._cards: List[NoteCard] = []
 
@@ -65,11 +67,12 @@ class NotesView(QWidget):
 
     def _setup_ui(self):
         main_layout = QVBoxLayout(self)
-        main_layout.setContentsMargins(28, 24, 28, 24)
-        main_layout.setSpacing(18)
+        main_layout.setContentsMargins(24, 20, 24, 20)
+        main_layout.setSpacing(14)
 
         # 1. Header Row (Title, Subtitle, New Note Button)
         header_layout = QHBoxLayout()
+        header_layout.setSpacing(10)
 
         title_col = QVBoxLayout()
         title_col.setSpacing(2)
@@ -82,13 +85,12 @@ class NotesView(QWidget):
         self.subtitle_lbl.setObjectName("pageSubtitle")
         title_col.addWidget(self.subtitle_lbl)
 
-        header_layout.addLayout(title_col)
-        header_layout.addStretch()
+        header_layout.addLayout(title_col, 1)
 
         if self.view_mode != "archived":
             self.new_note_btn = QPushButton("New Note", self)
             self.new_note_btn.setProperty("class", "primaryBtn")
-            self.new_note_btn.setFixedHeight(36)
+            self.new_note_btn.setFixedHeight(34)
             self.new_note_btn.setCursor(Qt.PointingHandCursor)
             self.new_note_btn.clicked.connect(self.new_note_requested.emit)
             header_layout.addWidget(self.new_note_btn)
@@ -97,18 +99,18 @@ class NotesView(QWidget):
 
         # 2. Controls Row (Search, Category Filter, Sort)
         controls_layout = QHBoxLayout()
-        controls_layout.setSpacing(12)
+        controls_layout.setSpacing(10)
 
-        self.search_bar = SearchBar(placeholder="Search notes...", parent=self)
+        self.search_bar = SearchBar(placeholder="Search notes, tags, content...", parent=self)
         self.search_bar.search_changed.connect(self._on_search)
         controls_layout.addWidget(self.search_bar, 1)
 
-        # Category Filter Dropdown (if in general notes view)
+        # Category Filter Dropdown
         if self.view_mode in ("notes", "favorites"):
             self.cat_filter = QComboBox(self)
             self.cat_filter.setProperty("class", "standardInput")
-            self.cat_filter.setFixedHeight(38)
-            self.cat_filter.setMinimumWidth(140)
+            self.cat_filter.setFixedHeight(36)
+            self.cat_filter.setMinimumWidth(130)
             self.cat_filter.addItem("All Categories", userData=None)
             self.cat_filter.currentIndexChanged.connect(self._on_cat_filter_changed)
             controls_layout.addWidget(self.cat_filter)
@@ -116,8 +118,8 @@ class NotesView(QWidget):
         # Sort dropdown
         self.sort_combo = QComboBox(self)
         self.sort_combo.setProperty("class", "standardInput")
-        self.sort_combo.setFixedHeight(38)
-        self.sort_combo.setMinimumWidth(150)
+        self.sort_combo.setFixedHeight(36)
+        self.sort_combo.setMinimumWidth(140)
         self.sort_combo.addItem("Recently Updated", userData=("updated_at", True))
         self.sort_combo.addItem("Recently Created", userData=("created_at", True))
         self.sort_combo.addItem("Title (A-Z)", userData=("title", False))
@@ -130,12 +132,13 @@ class NotesView(QWidget):
         self.scroll_area = QScrollArea(self)
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setStyleSheet("QScrollArea { border: none; background: transparent; }")
+        self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
         self.grid_container = QWidget()
         self.grid_container.setStyleSheet("background: transparent;")
         self.grid_layout = QGridLayout(self.grid_container)
         self.grid_layout.setContentsMargins(0, 4, 0, 16)
-        self.grid_layout.setSpacing(14)
+        self.grid_layout.setSpacing(12)
 
         self.scroll_area.setWidget(self.grid_container)
         main_layout.addWidget(self.scroll_area, 1)
@@ -144,7 +147,7 @@ class NotesView(QWidget):
         self.empty_state = QWidget(self)
         empty_layout = QVBoxLayout(self.empty_state)
         empty_layout.setAlignment(Qt.AlignCenter)
-        empty_layout.setSpacing(10)
+        empty_layout.setSpacing(8)
 
         self.empty_icon = QLabel(self.empty_state)
         self.empty_icon.setAlignment(Qt.AlignCenter)
@@ -181,6 +184,35 @@ class NotesView(QWidget):
             return cat.name if cat else "Category Notes"
         return "All Notes"
 
+    def _calculate_columns(self) -> int:
+        """Dynamically computes number of columns based on scroll area viewport width."""
+        viewport_w = self.scroll_area.viewport().width()
+        if viewport_w < 520:
+            return 1
+        elif viewport_w < 820:
+            return 2
+        elif viewport_w < 1180:
+            return 3
+        else:
+            return 4
+
+    def resizeEvent(self, event: QResizeEvent):
+        super().resizeEvent(event)
+        new_cols = self._calculate_columns()
+        if new_cols != self._current_cols and self._cards:
+            self._current_cols = new_cols
+            self._reposition_cards()
+
+    def _reposition_cards(self):
+        """Relayouts existing cards into current column count without re-instantiating."""
+        for card in self._cards:
+            self.grid_layout.removeWidget(card)
+
+        for idx, card in enumerate(self._cards):
+            row = idx // self._current_cols
+            col = idx % self._current_cols
+            self.grid_layout.addWidget(card, row, col)
+
     def refresh(self):
         """Reloads notes from database and refreshes grid."""
         # Update category dropdown
@@ -191,7 +223,6 @@ class NotesView(QWidget):
             self.cat_filter.addItem("All Categories", userData=None)
             for c in self.category_service.list_categories():
                 self.cat_filter.addItem(c.name, userData=c.id)
-            # Restore selection
             for i in range(self.cat_filter.count()):
                 if self.cat_filter.itemData(i) == current_selected:
                     self.cat_filter.setCurrentIndex(i)
@@ -235,15 +266,14 @@ class NotesView(QWidget):
         self.scroll_area.setVisible(True)
         self.empty_state.setVisible(False)
 
-        # Layout in 2-column or 3-column responsive grid
-        columns = 2
+        self._current_cols = self._calculate_columns()
         for idx, note in enumerate(notes):
             card = NoteCard(note, self.grid_container)
             card.clicked.connect(self.note_selected.emit)
             card.favorite_toggled.connect(self._on_toggle_fav)
 
-            row = idx // columns
-            col = idx % columns
+            row = idx // self._current_cols
+            col = idx % self._current_cols
             self.grid_layout.addWidget(card, row, col)
             self._cards.append(card)
 
@@ -269,12 +299,11 @@ class NotesView(QWidget):
     def _update_icons(self):
         try:
             theme = ThemeManager.instance()
-            icon_color = theme.get_color("icon")
             accent_color = theme.get_color("accent")
 
             if hasattr(self, "new_note_btn"):
-                self.new_note_btn.setIcon(get_icon("plus", color="#FFFFFF", size=15))
+                self.new_note_btn.setIcon(get_icon("plus", color="#FFFFFF", size=14))
 
-            self.empty_icon.setPixmap(render_svg_pixmap("notes", color=accent_color, size=48))
+            self.empty_icon.setPixmap(render_svg_pixmap("notes", color=accent_color, size=44))
         except RuntimeError:
             pass

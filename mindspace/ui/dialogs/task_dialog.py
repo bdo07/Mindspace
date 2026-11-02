@@ -1,4 +1,4 @@
-"""Dialog for creating and editing tasks."""
+"""Dialog for creating and editing tasks with input validation."""
 
 from datetime import date
 from typing import List, Optional
@@ -21,7 +21,7 @@ from mindspace.ui.themes.theme_manager import ThemeManager
 
 
 class TaskDialog(QDialog):
-    """Dialog to create or edit task details."""
+    """Dialog to create or edit task details with strict validation."""
 
     def __init__(
         self,
@@ -35,7 +35,7 @@ class TaskDialog(QDialog):
         is_edit = task is not None
 
         self.setWindowTitle("Edit Task" if is_edit else "New Task")
-        self.setFixedSize(420, 380)
+        self.setFixedSize(440, 420)
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
 
         theme = ThemeManager.instance()
@@ -53,30 +53,46 @@ class TaskDialog(QDialog):
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(24, 20, 24, 20)
-        layout.setSpacing(12)
+        layout.setSpacing(10)
 
-        title_lbl = QLabel("Edit Task" if is_edit else "New Task", self)
+        # Header Title
+        title_lbl = QLabel("Edit Task" if is_edit else "Create New Task", self)
         title_lbl.setStyleSheet(f"font-size: 16px; font-weight: 700; color: {text_color};")
         layout.addWidget(title_lbl)
 
+        # Validation error label (hidden by default)
+        self.error_label = QLabel("", self)
+        self.error_label.setStyleSheet("color: #D63031; font-size: 11px; font-weight: 600;")
+        self.error_label.setVisible(False)
+        layout.addWidget(self.error_label)
+
         # Title input
+        title_tag = QLabel("Title *", self)
+        title_tag.setStyleSheet(f"font-size: 11px; font-weight: 600; color: {theme.get_color('text_secondary')};")
+        layout.addWidget(title_tag)
+
         self.title_input = QLineEdit(self)
         self.title_input.setProperty("class", "standardInput")
         self.title_input.setPlaceholderText("What needs to be done?")
+        self.title_input.textChanged.connect(self._clear_error)
         if task:
             self.title_input.setText(task.title)
         layout.addWidget(self.title_input)
 
         # Description input
+        desc_tag = QLabel("Description (Optional)", self)
+        desc_tag.setStyleSheet(f"font-size: 11px; font-weight: 600; color: {theme.get_color('text_secondary')};")
+        layout.addWidget(desc_tag)
+
         self.desc_input = QTextEdit(self)
         self.desc_input.setProperty("class", "standardInput")
-        self.desc_input.setPlaceholderText("Add notes or details (optional)...")
-        self.desc_input.setMaximumHeight(80)
+        self.desc_input.setPlaceholderText("Add notes, checklist, or details...")
+        self.desc_input.setMaximumHeight(70)
         if task:
             self.desc_input.setText(task.description)
         layout.addWidget(self.desc_input)
 
-        # Due Date & Priority row
+        # Row: Due Date & Priority
         row1 = QHBoxLayout()
         row1.setSpacing(12)
 
@@ -137,7 +153,7 @@ class TaskDialog(QDialog):
         cat_col.addWidget(self.cat_combo)
         layout.addLayout(cat_col)
 
-        # Initialize values if editing
+        # Initialize existing values if editing
         if task:
             if task.due_date:
                 try:
@@ -185,14 +201,23 @@ class TaskDialog(QDialog):
 
         layout.addLayout(btn_layout)
 
+    def _clear_error(self):
+        self.error_label.setVisible(False)
+        self.title_input.setStyleSheet("")
+
     def _on_due_toggle(self, checked: bool):
         self.due_date_edit.setEnabled(checked)
         self.has_due_date.setText("Remove" if checked else "Set Date")
 
     def _on_save(self):
-        if not self.title_input.text().strip():
+        title = self.title_input.text().strip()
+        if not title:
+            self.error_label.setText("Please enter a task title.")
+            self.error_label.setVisible(True)
+            self.title_input.setStyleSheet("border: 1.5px solid #D63031;")
             self.title_input.setFocus()
             return
+
         self.accept()
 
     def get_data(self) -> dict:
@@ -204,4 +229,3 @@ class TaskDialog(QDialog):
             "priority": self.prio_combo.currentText().lower(),
             "category_id": self.cat_combo.currentData(),
         }
-
