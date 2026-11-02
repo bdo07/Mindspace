@@ -1,0 +1,125 @@
+"""About dialog displaying app information, philosophy, and keyboard shortcuts."""
+
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (
+    QDialog,
+    QFrame,
+    QGridLayout,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QVBoxLayout,
+)
+
+from mindspace import __version__
+from mindspace.ui.assets.icons import render_svg_pixmap
+from mindspace.ui.themes.theme_manager import ThemeManager
+
+
+class AboutDialog(QDialog):
+    """About Mindspace window."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("About MINDSPACE")
+        self.setFixedSize(480, 430)
+        self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
+
+        theme = ThemeManager.instance()
+        bg_color = theme.get_color("surface")
+        text_color = theme.get_color("text")
+        sec_color = theme.get_color("text_secondary")
+        border_color = theme.get_color("border")
+        accent_color = theme.get_color("accent")
+
+        self.setStyleSheet(f"""
+            QDialog {{
+                background-color: {bg_color};
+                border: 1px solid {border_color};
+                border-radius: 14px;
+            }}
+        """)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(28, 24, 28, 24)
+        layout.setSpacing(14)
+
+        # Header with Logo & Title
+        header_layout = QHBoxLayout()
+        header_layout.setSpacing(14)
+
+        logo_lbl = QLabel(self)
+        logo_lbl.setPixmap(render_svg_pixmap("logo", color=accent_color, size=42))
+        header_layout.addWidget(logo_lbl)
+
+        title_col = QVBoxLayout()
+        title_col.setSpacing(2)
+
+        app_title = QLabel("MINDSPACE", self)
+        app_title.setStyleSheet(f"font-size: 20px; font-weight: 700; color: {text_color}; letter-spacing: 0.5px;")
+        title_col.addWidget(app_title)
+
+        version_lbl = QLabel(f"Version {__version__} — Your Personal Space", self)
+        version_lbl.setStyleSheet(f"font-size: 12px; font-weight: 500; color: {sec_color};")
+        title_col.addWidget(version_lbl)
+
+        header_layout.addLayout(title_col)
+        header_layout.addStretch()
+        layout.addLayout(header_layout)
+
+        # Description
+        desc_lbl = QLabel(
+            "A minimalist personal productivity sanctuary combining notes, tasks, "
+            "quick thoughts, favorites, and organization. Built with Python 3, PySide6, "
+            "and local SQLite for complete offline privacy.",
+            self,
+        )
+        desc_lbl.setStyleSheet(f"font-size: 13px; color: {sec_color}; line-height: 1.45;")
+        desc_lbl.setWordWrap(True)
+        layout.addWidget(desc_lbl)
+
+        # Shortcuts Section
+        sc_card = QFrame(self)
+        sc_card.setStyleSheet(f"""
+            QFrame {{
+                background-color: {theme.get_color('background')};
+                border: 1px solid {border_color};
+                border-radius: 8px;
+                padding: 10px;
+            }}
+        """)
+        sc_layout = QGridLayout(sc_card)
+        sc_layout.setContentsMargins(12, 10, 12, 10)
+        sc_layout.setSpacing(6)
+
+        shortcuts = [
+            ("Ctrl / Cmd + N", "New Note"),
+            ("Ctrl / Cmd + F", "Quick Search"),
+            ("Ctrl / Cmd + S", "Save Note Immediately"),
+            ("Ctrl / Cmd + Q", "Quit Application"),
+        ]
+
+        for idx, (key, desc) in enumerate(shortcuts):
+            k_lbl = QLabel(key, sc_card)
+            k_lbl.setStyleSheet(f"font-size: 11px; font-weight: 600; color: {accent_color};")
+            d_lbl = QLabel(desc, sc_card)
+            d_lbl.setStyleSheet(f"font-size: 11px; color: {text_color};")
+            sc_layout.addWidget(k_lbl, idx, 0)
+            sc_layout.addWidget(d_lbl, idx, 1)
+
+        layout.addWidget(sc_card)
+        layout.addStretch()
+
+        # Close button
+        btn_layout = QHBoxLayout()
+        btn_layout.addStretch()
+        close_btn = QPushButton("Done", self)
+        close_btn.setProperty("class", "primaryBtn")
+        close_btn.setFixedHeight(34)
+        close_btn.setFixedWidth(80)
+        close_btn.setCursor(Qt.PointingHandCursor)
+        close_btn.clicked.connect(self.accept)
+        btn_layout.addWidget(close_btn)
+
+        layout.addLayout(btn_layout)
+

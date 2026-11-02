@@ -1,0 +1,445 @@
+/* MINDSPACE Light Theme - Premium Minimalist macOS Aesthetic */
+
+* {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Inter, Arial, sans-serif;
+    outline: none;
+}
+
+QMainWindow, QWidget#centralWidget {
+    background-color: #F7F6F2;
+    color: #1C1C1E;
+}
+
+/* --------------------------------------------------------------------------
+   SIDEBAR
+   -------------------------------------------------------------------------- */
+QWidget#sidebarContainer {
+    background-color: #EFECE6;
+    border-right: 1px solid #E2DFD6;
+}
+
+QLabel#appTitle {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1C1C1E;
+    letter-spacing: 0.5px;
+}
+
+QLabel#appSubtitle {
+    font-size: 11px;
+    font-weight: 500;
+    color: #8E8E93;
+}
+
+QLabel#sidebarSectionTitle {
+    font-size: 10px;
+    font-weight: 700;
+    color: #9C9A94;
+    text-transform: uppercase;
+    letter-spacing: 0.9px;
+    padding-left: 8px;
+    padding-top: 12px;
+    padding-bottom: 4px;
+}
+
+QPushButton.sidebarNavBtn {
+    text-align: left;
+    background-color: transparent;
+    border: none;
+    border-radius: 6px;
+    padding: 7px 10px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #3A3A3C;
+}
+
+QPushButton.sidebarNavBtn:hover {
+    background-color: #E4E1DA;
+    color: #1C1C1E;
+}
+
+QPushButton.sidebarNavBtn[active="true"] {
+    background-color: #FFFFFF;
+    color: #1C1C1E;
+    font-weight: 600;
+    border: 1px solid #DEDAD1;
+}
+
+/* Sidebar Count Badges */
+QLabel.badge {
+    background-color: #DFDBD2;
+    color: #555558;
+    border-radius: 9px;
+    padding: 1px 6px;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+QLabel.badgeActive {
+    background-color: #7059C8;
+    color: #FFFFFF;
+    border-radius: 9px;
+    padding: 1px 6px;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   MAIN CONTENT HEADER
+   -------------------------------------------------------------------------- */
+QWidget#mainContentArea {
+    background-color: #F7F6F2;
+}
+
+QLabel#pageTitle {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1C1C1E;
+    letter-spacing: -0.3px;
+}
+
+QLabel#pageSubtitle {
+    font-size: 13px;
+    color: #6E6E73;
+}
+
+/* --------------------------------------------------------------------------
+   BUTTONS
+   -------------------------------------------------------------------------- */
+QPushButton.primaryBtn {
+    background-color: #7059C8;
+    color: #FFFFFF;
+    border: 1px solid #634DB8;
+    border-radius: 7px;
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+QPushButton.primaryBtn:hover {
+    background-color: #634DB8;
+}
+
+QPushButton.primaryBtn:pressed {
+    background-color: #5640A8;
+}
+
+QPushButton.primaryBtn:disabled {
+    background-color: #C5BFDF;
+    border-color: #C5BFDF;
+    color: #FAFAFA;
+}
+
+QPushButton.secondaryBtn {
+    background-color: #FFFFFF;
+    color: #1C1C1E;
+    border: 1px solid #E5E2D9;
+    border-radius: 7px;
+    padding: 7px 13px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+QPushButton.secondaryBtn:hover {
+    background-color: #F2EFE8;
+    border-color: #D6D2C7;
+}
+
+QPushButton.secondaryBtn:pressed {
+    background-color: #E8E5DD;
+}
+
+QPushButton.iconBtn {
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 4px;
+}
+
+QPushButton.iconBtn:hover {
+    background-color: #E8E5DE;
+    border-color: #D8D4CC;
+}
+
+QPushButton.iconBtn[active="true"] {
+    background-color: #ECE8F9;
+    border-color: #D5CEF3;
+}
+
+QPushButton.dangerBtn {
+    background-color: #FFFFFF;
+    color: #D63031;
+    border: 1px solid #FFC9C9;
+    border-radius: 7px;
+    padding: 7px 13px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+QPushButton.dangerBtn:hover {
+    background-color: #FFF5F5;
+    border-color: #FF8787;
+}
+
+/* --------------------------------------------------------------------------
+   INPUTS & CONTROLS
+   -------------------------------------------------------------------------- */
+QLineEdit.searchInput {
+    background-color: #FFFFFF;
+    border: 1px solid #E2DFD6;
+    border-radius: 7px;
+    padding: 6px 12px 6px 30px;
+    font-size: 13px;
+    color: #1C1C1E;
+}
+
+QLineEdit.searchInput:focus {
+    border: 1px solid #7059C8;
+    background-color: #FFFFFF;
+}
+
+QLineEdit.standardInput, QTextEdit.standardInput, QPlainTextEdit.standardInput, QComboBox, QDateEdit {
+    background-color: #FFFFFF;
+    border: 1px solid #E2DFD6;
+    border-radius: 7px;
+    padding: 7px 11px;
+    font-size: 13px;
+    color: #1C1C1E;
+}
+
+QLineEdit.standardInput:focus, QTextEdit.standardInput:focus, QPlainTextEdit.standardInput:focus, QComboBox:focus, QDateEdit:focus {
+    border: 1px solid #7059C8;
+}
+
+QComboBox::drop-down {
+    border: none;
+    width: 22px;
+}
+
+QComboBox QAbstractItemView {
+    background-color: #FFFFFF;
+    border: 1px solid #E2DFD6;
+    border-radius: 6px;
+    selection-background-color: #ECE8F9;
+    selection-color: #1C1C1E;
+    padding: 4px;
+}
+
+/* --------------------------------------------------------------------------
+   CARDS (Notes & Tasks)
+   -------------------------------------------------------------------------- */
+QFrame.noteCard {
+    background-color: #FFFFFF;
+    border: 1px solid #E5E2D9;
+    border-radius: 10px;
+}
+
+QFrame.noteCard:hover {
+    border-color: #C9C4B7;
+}
+
+QFrame.noteCardPinned {
+    background-color: #FFFFFF;
+    border: 1px solid #D5CEF3;
+    border-radius: 10px;
+}
+
+QFrame.noteCardPinned:hover {
+    border-color: #B2A6EA;
+}
+
+QLabel.cardTitle {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1C1C1E;
+}
+
+QLabel.cardPreview {
+    font-size: 12px;
+    line-height: 1.45;
+    color: #6E6E73;
+}
+
+QLabel.cardDate {
+    font-size: 11px;
+    color: #8E8E93;
+    font-weight: 500;
+}
+
+/* --------------------------------------------------------------------------
+   EDITOR
+   -------------------------------------------------------------------------- */
+QLineEdit#editorTitleInput {
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    font-weight: 700;
+    color: #1C1C1E;
+    padding: 2px 0px;
+}
+
+QPlainTextEdit#editorContentInput, QTextEdit#editorContentInput {
+    background-color: #FFFFFF;
+    border: 1px solid #E5E2D9;
+    border-radius: 8px;
+    padding: 16px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #1C1C1E;
+}
+
+QPlainTextEdit#editorContentInput:focus, QTextEdit#editorContentInput:focus {
+    border-color: #C9C4B7;
+}
+
+QTextBrowser#markdownPreview {
+    background-color: #FFFFFF;
+    border: 1px solid #E5E2D9;
+    border-radius: 8px;
+}
+
+QFrame#editorToolbar {
+    background-color: #FFFFFF;
+    border: 1px solid #E5E2D9;
+    border-radius: 7px;
+    padding: 2px 4px;
+}
+
+/* --------------------------------------------------------------------------
+   TASKS
+   -------------------------------------------------------------------------- */
+QFrame.taskItem {
+    background-color: #FFFFFF;
+    border: 1px solid #E5E2D9;
+    border-radius: 8px;
+    padding: 8px 12px;
+}
+
+QFrame.taskItem:hover {
+    border-color: #C9C4B7;
+}
+
+QFrame.taskItemCompleted {
+    background-color: #F8F7F4;
+    border: 1px solid #EAE7E0;
+    border-radius: 8px;
+}
+
+QLabel.taskTitle {
+    font-size: 13px;
+    font-weight: 500;
+    color: #1C1C1E;
+}
+
+QLabel.taskTitleCompleted {
+    font-size: 13px;
+    font-weight: 400;
+    color: #9C9A94;
+    text-decoration: line-through;
+}
+
+/* Due Badges */
+QLabel.dueBadge {
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+QLabel.dueBadge_overdue {
+    background-color: #FFE3E3;
+    color: #D63031;
+}
+
+QLabel.dueBadge_today {
+    background-color: #FFF3BF;
+    color: #E67700;
+}
+
+QLabel.dueBadge_tomorrow {
+    background-color: #E7F5FF;
+    color: #1C7ED6;
+}
+
+QLabel.dueBadge_upcoming {
+    background-color: #F1F3F5;
+    color: #495057;
+}
+
+/* Section Subheader in Tasks / Settings */
+QLabel.sectionHeader {
+    font-size: 11px;
+    font-weight: 700;
+    color: #8E8E93;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-top: 10px;
+}
+
+/* Segmented Tabs */
+QPushButton.segmentedTab {
+    background-color: transparent;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #6E6E73;
+}
+
+QPushButton.segmentedTab:hover {
+    color: #1C1C1E;
+}
+
+QPushButton.segmentedTab[active="true"] {
+    background-color: #FFFFFF;
+    color: #1C1C1E;
+    font-weight: 600;
+    border: 1px solid #DEDAD1;
+}
+
+/* Scrollbars */
+QScrollBar:vertical {
+    border: none;
+    background: transparent;
+    width: 6px;
+    margin: 0px;
+}
+
+QScrollBar::handle:vertical {
+    background: #D5D1C7;
+    min-height: 24px;
+    border-radius: 3px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #BAB6AC;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0px;
+}
+
+QScrollBar:horizontal {
+    border: none;
+    background: transparent;
+    height: 6px;
+    margin: 0px;
+}
+
+QScrollBar::handle:horizontal {
+    background: #D5D1C7;
+    min-width: 24px;
+    border-radius: 3px;
+}
+
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+    width: 0px;
+}
+
+/* Dialogs */
+QDialog {
+    background-color: #FFFFFF;
+    border: 1px solid #E5E2D9;
+    border-radius: 10px;
+}
