@@ -8,13 +8,15 @@ A minimalist, modern personal productivity desktop application crafted with **Py
 
 - 📝 **Markdown Note Editor**: Full formatting toolbar, live markdown preview toggle, heading support, code snippets, checklists, blockquotes, and links.
 - ⚡ **Quick Notes Scratchpad**: Rapid idea capture pad with one-click conversion to full structured notes.
-- ✅ **Task Manager**: Organize daily actions, due dates (overdue, today, upcoming badges), priorities, and completion progress metrics.
-- 📂 **Custom Categories**: Color-coded category tags with custom palettes and live note counts.
+- ✅ **Task Manager**: Organize daily actions, modal task dialog, due dates (overdue, today, upcoming badges), priorities, and completion progress metrics.
+- 📂 **Custom Categories**: Color-coded category tags with custom palettes, live note counts, and contextual right-click edit/delete directly from the sidebar.
 - ⭐ **Favorites & Pinning**: Pin crucial notes to the top of your workspace; mark favorites for instant access.
 - 📦 **Archived Notes**: Archive completed projects with one-click restoration or permanent deletion.
-- 🔍 **Live Search**: Instant local search across note titles, contents, and tags.
+- 🖱️ **Card Context Menus**: Right-click on any note card to pin, favorite, archive/restore, or delete in one click.
+- 📐 **Responsive Architecture**: Smooth collapsible sidebar (expanded `220px`, collapsed `60px`), automatic collapse on compact screens (<860px), and dynamic 1-4 column card grid calculation.
+- 🔍 **Live Search**: Instant local search across note titles, contents, and tags with debounced input.
 - 💾 **Debounced Auto-Save**: Never lose a thought—notes auto-save quietly in the background as you write.
-- 🌓 **Light & Dark Themes**: Pixel-perfect warm light canvas and slate dark theme with persistent preference storage.
+- 🌓 **Centralized Light & Dark Themes**: Pixel-perfect warm light canvas and slate dark theme with complete QSS widget coverage, instant switching, and persistent preference storage.
 - 🛡️ **Offline & Private**: All data is stored in a clean local SQLite database with automated WAL-mode journaling and zero telemetry.
 - 📦 **Backup & Restore**: Native SQLite backup export and restoration with schema integrity checks.
 
@@ -26,13 +28,13 @@ MINDSPACE follows a clean, minimalist design language inspired by modern macOS p
 
 | Element | Light Mode | Dark Mode |
 |---|---|---|
-| **Background** | `#F7F6F2` (Warm Canvas) | `#18181B` (Deep Slate) |
-| **Surface** | `#FFFFFF` (Pure White) | `#212126` (Charcoal) |
-| **Primary Text** | `#202020` | `#F3F3F5` |
-| **Secondary Text** | `#858585` | `#9E9EA8` |
-| **Accent Color** | `#8B79D9` (Mindspace Lavender) | `#9D8DE6` |
-| **Borders** | `#EAE8E2` | `#2E2E38` |
-| **Typography** | Inter, -apple-system, Segoe UI, sans-serif | Inter, -apple-system, Segoe UI, sans-serif |
+| **Background** | `#F7F6F2` (Warm Canvas) | `#161618` (Deep Slate) |
+| **Surface** | `#FFFFFF` (Pure White) | `#1E1E22` (Charcoal Surface) |
+| **Primary Text** | `#1C1C1E` | `#F2F2F5` |
+| **Secondary Text** | `#6E6E73` | `#9A9AA4` |
+| **Accent Color** | `#7059C8` (Mindspace Lavender) | `#9887E8` / `#7E69D6` |
+| **Borders** | `#E5E2D9` | `#2C2C32` |
+| **Typography** | `.AppleSystemUIFont`, Inter, Segoe UI, sans-serif | `.AppleSystemUIFont`, Inter, Segoe UI, sans-serif |
 
 ---
 
@@ -40,6 +42,11 @@ MINDSPACE follows a clean, minimalist design language inspired by modern macOS p
 
 ```
 Mindspace/
+├── main.py                       # Root launcher script
+├── run.py                        # Alternative launcher script
+├── requirements.txt              # Production dependencies
+├── LICENSE                       # MIT License
+├── README.md                     # Project documentation
 ├── mindspace/
 │   ├── __init__.py               # Package metadata and version info
 │   ├── main.py                   # Main Qt application entry point
@@ -65,43 +72,41 @@ Mindspace/
 │   │   ├── __init__.py
 │   │   ├── main_window.py        # Central MainWindow controller
 │   │   ├── components/
-│   │   │   ├── sidebar.py        # Sidebar navigation & badges
-│   │   │   ├── search_bar.py     # Search input with debounce
-│   │   │   ├── note_card.py      # Interactive note card
+│   │   │   ├── sidebar.py        # Responsive collapsible sidebar
+│   │   │   ├── search_bar.py     # Search input with debounce & cached actions
+│   │   │   ├── note_card.py      # Interactive note card with context menu
 │   │   │   ├── task_item.py      # Interactive task checklist item
 │   │   │   ├── toolbar.py        # Markdown formatting toolbar
 │   │   │   └── toast.py          # Notification toast overlay
 │   │   ├── views/
-│   │   │   ├── notes_view.py     # Notes grid with search & sort
-│   │   │   ├── editor_view.py    # Full-featured markdown editor
+│   │   │   ├── notes_view.py     # Dynamic multi-column grid with search & sort
+│   │   │   ├── editor_view.py    # Markdown editor with write/split/preview
 │   │   │   ├── quick_notes_view.py # Frictionless scratchpad
-│   │   │   ├── tasks_view.py     # Tasks board with progress
+│   │   │   ├── tasks_view.py     # Tasks board with tabs & progress
 │   │   │   └── settings_view.py  # Preferences & database stats
 │   │   ├── dialogs/
 │   │   │   ├── confirm_dialog.py # Clean confirmation modal
-│   │   │   ├── category_dialog.py# Color palette & category creator
-│   │   │   ├── task_dialog.py    # Task editor with date picker
+│   │   │   ├── category_dialog.py# Color palette & category creator/editor
+│   │   │   ├── task_dialog.py    # Task editor with date picker & validation
 │   │   │   └── about_dialog.py   # About & keyboard shortcuts modal
 │   │   ├── themes/
 │   │   │   ├── light.qss         # Light theme stylesheet
 │   │   │   ├── dark.qss          # Dark theme stylesheet
-│   │   │   └── theme_manager.py  # Theme switcher service
+│   │   │   └── theme_manager.py  # Centralized theme manager
 │   │   └── assets/
 │   │       └── icons.py          # Lucide-style vector SVG library
 │   └── utils/
 │       ├── debounce.py           # QTimer-based event debouncer
 │       ├── markdown_utils.py     # Markdown-to-HTML converter
 │       └── date_utils.py         # Human-friendly relative date formatting
-├── tests/
-│   ├── test_database.py          # Database schema & CRUD tests
-│   ├── test_services.py          # Business logic tests
-│   ├── test_backup.py            # Backup & restore tests
-│   ├── test_ui_smoke.py          # PySide6 UI instantiation tests
-│   └── test_e2e_flow.py          # End-to-end user workflow test
-├── run.py                        # Root launcher script
-├── requirements.txt              # Production dependencies
-├── .gitignore                    # Git ignore specifications
-└── README.md                     # Project documentation
+└── tests/
+    ├── test_database.py          # Database schema & CRUD tests
+    ├── test_services.py          # Business logic tests
+    ├── test_backup.py            # Backup & restore tests
+    ├── test_ui_smoke.py          # PySide6 UI instantiation tests
+    ├── test_dark_mode_and_theme.py# Dark mode & theme coverage tests
+    ├── test_audit_and_responsive.py# Full audit and responsive window tests
+    └── test_e2e_flow.py          # End-to-end user workflow test
 ```
 
 ---
@@ -147,15 +152,16 @@ pip install -r requirements.txt
 
 ## 💻 Running the Application
 
-Launch MINDSPACE with the convenience runner:
+Launch MINDSPACE with any of the following standard runners:
 
 ```bash
+# Option 1: Main entry
+python main.py
+
+# Option 2: Run script
 python run.py
-```
 
-Or execute as a module:
-
-```bash
+# Option 3: Module execution
 python -m mindspace.main
 ```
 
@@ -165,7 +171,7 @@ python -m mindspace.main
 
 | Shortcut | Action |
 |---|---|
-| `Ctrl` / `Cmd` + `N` | Create a new note and open editor |
+| `Ctrl` / `Cmd` + `N` | Smart New (creates Note or Task based on active view) |
 | `Ctrl` / `Cmd` + `F` | Focus search bar in active view |
 | `Ctrl` / `Cmd` + `S` | Force immediate note save |
 | `Ctrl` / `Cmd` + `B` | Bold text in editor (`**bold**`) |
@@ -177,19 +183,22 @@ python -m mindspace.main
 
 ## 🧪 Running Tests
 
-The application includes automated unit and integration test suites:
+The application includes 20 automated unit, integration, responsive, and theme test suites:
 
 ```bash
 # Run all tests
 python -m unittest discover -s tests -p "test_*.py" -v
 ```
 
-All 13 tests cover:
+All 20 tests cover:
 - SQLite schema initialization, foreign keys, and WAL mode
 - Note, task, category, and settings CRUD operations
 - Quick note conversion workflow
 - Due date calculation and status badges
 - Backup export, validation, and full restoration cycle
+- Responsive window resize tests (1440x900, 1280x800, 1024x768, 800x600)
+- Add Task 8-step workflow validation
+- Dark Mode full widget styling, token validation, and live switching
 - PySide6 UI views instantiation and navigation transitions
 - End-to-end user workflow simulation
 
@@ -207,4 +216,3 @@ MINDSPACE operates 100% locally and offline:
 ## 📄 License
 
 MINDSPACE is open source and available under the [MIT License](LICENSE).
-

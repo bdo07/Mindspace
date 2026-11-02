@@ -214,6 +214,35 @@ class TestFullAuditAndResponsive(unittest.TestCase):
         search_results = window.note_service.list_notes(search_query="Welcome")
         self.assertGreaterEqual(len(search_results), 1)
 
+        # 10. Category Editing & Deletion
+        cat = window.category_service.create_category(name="Old Name", color="#7059C8")
+        window.category_service.update_category(cat.id, name="New Name", color="#5C7CFA")
+        updated_cat = window.category_service.get_category(cat.id)
+        self.assertEqual(updated_cat.name, "New Name")
+        self.assertEqual(updated_cat.color, "#5C7CFA")
+
+        window.category_service.delete_category(cat.id)
+        self.assertIsNone(window.category_service.get_category(cat.id))
+
+        # 11. Note Card Context Actions in NotesView
+        test_note = window.note_service.create_note(title="Card Action Note", content="Sample")
+        window.notes_view.refresh()
+
+        window.notes_view._on_toggle_pin(test_note.id)
+        self.assertTrue(window.note_service.get_note(test_note.id).is_pinned)
+
+        window.notes_view._on_toggle_fav(test_note.id)
+        self.assertTrue(window.note_service.get_note(test_note.id).is_favorite)
+
+        window.notes_view._on_toggle_archive(test_note.id)
+        self.assertTrue(window.note_service.get_note(test_note.id).is_archived)
+
+        window.notes_view._on_toggle_archive(test_note.id)
+        self.assertFalse(window.note_service.get_note(test_note.id).is_archived)
+
+        window.note_service.delete_note(test_note.id)
+        self.assertIsNone(window.note_service.get_note(test_note.id))
+
         window.close()
 
 
