@@ -2,7 +2,7 @@
 
 from typing import Optional
 from PySide6.QtCore import QSize, Qt
-from PySide6.QtGui import QCloseEvent, QKeySequence, QShortcut
+from PySide6.QtGui import QCloseEvent, QKeySequence, QResizeEvent, QShortcut
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QMainWindow,
@@ -29,12 +29,13 @@ from mindspace.ui.views.tasks_view import TasksView
 
 
 class MainWindow(QMainWindow):
-    """Primary application window connecting all services, views, and navigation."""
+    """Primary application window connecting all services, views, and navigation with responsive layout."""
 
     def __init__(self, db_conn: Optional[DatabaseConnection] = None, parent=None):
         super().__init__(parent)
         self.setWindowTitle("MINDSPACE — Your Personal Space")
-        self.setMinimumSize(960, 640)
+        # Ensure application fits 800x600 and larger screens comfortably
+        self.setMinimumSize(780, 520)
 
         # Initialize Data & Services Layer
         self.db = db_conn or DatabaseConnection()
@@ -45,9 +46,11 @@ class MainWindow(QMainWindow):
         self.settings_service = SettingsService(self.repo)
         self.backup_service = BackupService(self.db)
 
+        self._user_manually_collapsed = False
+
         # Restore window geometry
         settings = self.settings_service.get_settings()
-        self.resize(settings.window_width, settings.window_height)
+        self.resize(max(800, settings.window_width), max(600, settings.window_height))
 
         # Build UI
         self._setup_ui()
@@ -63,11 +66,12 @@ class MainWindow(QMainWindow):
         root_layout.setContentsMargins(0, 0, 0, 0)
         root_layout.setSpacing(0)
 
-        # 1. Left Sidebar
+        # 1. Left Sidebar with Collapse Support
         self.sidebar = Sidebar(self)
         self.sidebar.nav_changed.connect(self._on_navigation_changed)
         self.sidebar.add_category_clicked.connect(self._on_add_category)
         self.sidebar.theme_toggle_clicked.connect(self._on_toggle_theme)
+        self.sidebar.collapse_toggled.connect(self._on_sidebar_collapse_toggled)
         root_layout.addWidget(self.sidebar)
 
         # 2. Main Content Area with View Stack
@@ -128,9 +132,9 @@ class MainWindow(QMainWindow):
         self.toast = Toast(self)
 
     def _setup_global_shortcuts(self):
-        # Ctrl/Cmd+N: New Note
+        # Ctrl/Cmd+N: Smart New (Note or Task depending on view)
         sc_new = QShortcut(QKeySequence.New, self)
-        sc_new.activated.connect(self._create_new_note)
+        sc_new.activated.connect(self._on_shortcut_new)
 
         # Ctrl/Cmd+F: Search focus
         sc_search = QShortcut(QKeySequence.Find, self)
@@ -140,8 +144,14 @@ class MainWindow(QMainWindow):
         sc_quit = QShortcut(QKeySequence.Quit, self)
         sc_quit.activated.connect(self.close)
 
+    def _on_shortcut_new(self):
+        current_w = self.view_stack.currentWidget()
+        if current_w == self.tasks_view:
+            self.tasks_view._open_new_task_dialog()
+        else:
+            self._create_new_note()
+
     def _load_initial_state(self):
-        # Apply persisted theme
         settings = self.settings_service.get_settings()
         ThemeManager.instance().apply_theme(settings.theme)
 
@@ -152,6 +162,22 @@ class MainWindow(QMainWindow):
         # Open default view
         target_view = settings.default_view or "notes"
         self._on_navigation_changed(target_view)
+
+        # Check initial width for sidebar collapse
+        if self.width() < 860:
+            self.sidebar.set_collapsed(True)
+
+    def _on_sidebar_collapse_toggled(self, collapsed: bool):
+        self._user_manually_collapsed = collapsed
+
+    def resizeEvent(self, event: QResizeEvent):
+        super().resizeEvent(event)
+        w = self.width()
+        # Automatically collapse sidebar on compact windows if user hasn't explicitly expanded
+        if w < 860 and not self.sidebar.is_collapsed:
+            self.sidebar.set_collapsed(True)
+        elif w >= 1020 and self.sidebar.is_collapsed and not self._user_manually_collapsed:
+            self.sidebar.set_collapsed(False)
 
     def _on_navigation_changed(self, nav_key: str):
         self.sidebar.set_active(nav_key)
@@ -250,8 +276,6 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event: QCloseEvent):
         # Persist window geometry
         self.settings_service.set_window_geometry(self.width(), self.height())
-        # Ensure any pending note edits are saved
         if hasattr(self, "editor_view"):
             self.editor_view.save_immediately()
         super().closeEvent(event)
-

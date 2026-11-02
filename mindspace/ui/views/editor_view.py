@@ -245,8 +245,11 @@ class EditorView(QWidget):
             self.splitter.setSizes([half, half])
             self.editor_content.setFocus()
 
-    def _on_toolbar_preview_toggle(self, is_preview: bool):
+    def _on_preview_toggled(self, is_preview: bool):
         self.set_view_mode("preview" if is_preview else "write")
+
+    def _on_toolbar_preview_toggle(self, is_preview: bool):
+        self._on_preview_toggled(is_preview)
 
     def _render_markdown(self):
         content = self.editor_content.toPlainText()
