@@ -68,10 +68,12 @@ class TestEndToEndWorkflow(unittest.TestCase):
 
         # Test Markdown Preview toggle
         window.editor_view._on_preview_toggled(True)
-        self.assertTrue(window.editor_view.preview_browser.isVisible())
+        self.assertEqual(window.editor_view._mode, "preview")
+        self.assertFalse(window.editor_view.preview_browser.isHidden())
         self.assertIn("Architecture", window.editor_view.preview_browser.toHtml())
         window.editor_view._on_preview_toggled(False)
-        self.assertTrue(window.editor_view.editor_content.isVisible())
+        self.assertEqual(window.editor_view._mode, "write")
+        self.assertFalse(window.editor_view.editor_content.isHidden())
 
         # Pin and Favorite
         window.editor_view._toggle_pin()
