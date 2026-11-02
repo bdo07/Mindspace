@@ -93,7 +93,7 @@ class EditorView(QWidget):
         status_layout.addWidget(self.status_dot)
 
         self.save_status = QLabel("Saved", self.status_container)
-        self.save_status.setStyleSheet("font-size: 11px; font-weight: 500; color: #8E8E93;")
+        self.save_status.setProperty("class", "editorStatusText")
         status_layout.addWidget(self.save_status)
 
         top_bar.addWidget(self.status_container)

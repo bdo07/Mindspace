@@ -10,7 +10,6 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QPushButton,
     QVBoxLayout,
-    QWidget,
 )
 
 from mindspace.models.category import Category
@@ -43,44 +42,31 @@ class CategoryDialog(QDialog):
         self.setFixedSize(360, 270)
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
 
-        theme = ThemeManager.instance()
-        bg_color = theme.get_color("surface")
-        text_color = theme.get_color("text")
-        border_color = theme.get_color("border")
-
-        self.setStyleSheet(f"""
-            QDialog {{
-                background-color: {bg_color};
-                border: 1px solid {border_color};
-                border-radius: 12px;
-            }}
-        """)
-
         layout = QVBoxLayout(self)
         layout.setContentsMargins(24, 20, 24, 20)
         layout.setSpacing(12)
 
         # Title
         title_lbl = QLabel("Edit Category" if is_edit else "Create Category", self)
-        title_lbl.setStyleSheet(f"font-size: 16px; font-weight: 700; color: {text_color};")
+        title_lbl.setProperty("class", "dialogTitle")
         layout.addWidget(title_lbl)
 
         # Name input
         name_lbl = QLabel("Category Name *", self)
-        name_lbl.setStyleSheet(f"font-size: 11px; font-weight: 600; color: {theme.get_color('text_secondary')};")
+        name_lbl.setProperty("class", "inputLabel")
         layout.addWidget(name_lbl)
 
         self.name_input = QLineEdit(self)
         self.name_input.setProperty("class", "standardInput")
         self.name_input.setPlaceholderText("e.g. Work, Ideas, Research")
-        self.name_input.textChanged.connect(lambda: self.name_input.setStyleSheet(""))
+        self.name_input.textChanged.connect(self._clear_error)
         if category:
             self.name_input.setText(category.name)
         layout.addWidget(self.name_input)
 
         # Color picker
         color_lbl = QLabel("Accent Color", self)
-        color_lbl.setStyleSheet(f"font-size: 11px; font-weight: 600; color: {theme.get_color('text_secondary')};")
+        color_lbl.setProperty("class", "inputLabel")
         layout.addWidget(color_lbl)
 
         palette_layout = QGridLayout()
@@ -123,15 +109,30 @@ class CategoryDialog(QDialog):
 
         layout.addLayout(btn_layout)
 
+    def _clear_error(self):
+        self.name_input.setProperty("hasError", False)
+        self.name_input.style().unpolish(self.name_input)
+        self.name_input.style().polish(self.name_input)
+
     def _style_color_btn(self, btn: QPushButton, color: str, is_selected: bool):
-        border_style = "2.5px solid #1C1C1E" if is_selected else "1px solid rgba(0,0,0,0.18)"
-        btn.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {color};
-                border-radius: 13px;
-                border: {border_style};
-            }}
-        """)
+        theme = ThemeManager.instance()
+        if is_selected:
+            sel_border = theme.get_color("swatch_border")
+            btn.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: {color};
+                    border-radius: 13px;
+                    border: 2.5px solid {sel_border};
+                }}
+            """)
+        else:
+            btn.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: {color};
+                    border-radius: 13px;
+                    border: 1px solid rgba(128, 128, 128, 0.35);
+                }}
+            """)
 
     def _select_color(self, color: str):
         self.selected_color = color
@@ -142,7 +143,9 @@ class CategoryDialog(QDialog):
     def _on_save(self):
         name = self.name_input.text().strip()
         if not name:
-            self.name_input.setStyleSheet("border: 1.5px solid #D63031;")
+            self.name_input.setProperty("hasError", True)
+            self.name_input.style().unpolish(self.name_input)
+            self.name_input.style().polish(self.name_input)
             self.name_input.setFocus()
             return
         self.accept()

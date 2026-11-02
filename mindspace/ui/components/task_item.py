@@ -1,6 +1,7 @@
 """Task item card component with completion toggle, due date, and actions."""
 
 from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
@@ -73,16 +74,7 @@ class TaskItem(QFrame):
         # Priority tag if high
         if self.task.priority == "high" and not is_done:
             self.prio_badge = QLabel("High", self)
-            self.prio_badge.setStyleSheet("""
-                QLabel {
-                    background-color: #FFE3E3;
-                    color: #D63031;
-                    border-radius: 4px;
-                    padding: 2px 6px;
-                    font-size: 10px;
-                    font-weight: 700;
-                }
-            """)
+            self.prio_badge.setProperty("class", "prioBadgeHigh")
             badge_layout.addWidget(self.prio_badge)
 
         # Due Date Badge
@@ -95,12 +87,14 @@ class TaskItem(QFrame):
         # Category Pill
         if self.task.category_name:
             color = self.task.category_color or "#7059C8"
+            qc = QColor(color)
+            r, g, b = qc.red(), qc.green(), qc.blue()
             self.cat_pill = QLabel(f" {self.task.category_name} ", self)
             self.cat_pill.setStyleSheet(f"""
                 QLabel {{
-                    background-color: {color}18;
+                    background-color: rgba({r}, {g}, {b}, 0.15);
                     color: {color};
-                    border: 1px solid {color}44;
+                    border: 1px solid rgba({r}, {g}, {b}, 0.35);
                     border-radius: 8px;
                     padding: 1px 6px;
                     font-size: 10px;

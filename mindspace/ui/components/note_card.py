@@ -1,6 +1,7 @@
 """Note card component for grid/list display with high visual polish."""
 
 from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
@@ -83,12 +84,14 @@ class NoteCard(QFrame):
 
         if self.note.category_name:
             color = self.note.category_color or "#7059C8"
+            qc = QColor(color)
+            r, g, b = qc.red(), qc.green(), qc.blue()
             self.category_pill = QLabel(f" {self.note.category_name} ", self)
             self.category_pill.setStyleSheet(f"""
                 QLabel {{
-                    background-color: {color}18;
+                    background-color: rgba({r}, {g}, {b}, 0.15);
                     color: {color};
-                    border: 1px solid {color}44;
+                    border: 1px solid rgba({r}, {g}, {b}, 0.35);
                     border-radius: 8px;
                     padding: 1px 6px;
                     font-size: 10px;

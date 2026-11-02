@@ -167,7 +167,6 @@ class Sidebar(QWidget):
 
         self.theme_text_lbl = QLabel("Theme", self.theme_btn)
         self.theme_text_lbl.setAttribute(Qt.WA_TransparentForMouseEvents)
-        self.theme_text_lbl.setStyleSheet("background: transparent; font-weight: inherit; color: inherit;")
         self.theme_btn_layout.addWidget(self.theme_text_lbl, 1)
 
         self.theme_btn.clicked.connect(self.theme_toggle_clicked.emit)
@@ -199,7 +198,6 @@ class Sidebar(QWidget):
 
         text_label = QLabel(label, btn)
         text_label.setAttribute(Qt.WA_TransparentForMouseEvents)
-        text_label.setStyleSheet("background: transparent; font-weight: inherit; color: inherit;")
         btn_layout.addWidget(text_label, 1)
         self._nav_labels[key] = text_label
 
@@ -285,7 +283,6 @@ class Sidebar(QWidget):
             # Category name
             name_lbl = QLabel(cat.name, btn)
             name_lbl.setAttribute(Qt.WA_TransparentForMouseEvents)
-            name_lbl.setStyleSheet("background: transparent; font-weight: inherit; color: inherit;")
             layout.addWidget(name_lbl, 1)
             name_lbl.setVisible(not self.is_collapsed)
             self._category_labels[cat.id] = name_lbl

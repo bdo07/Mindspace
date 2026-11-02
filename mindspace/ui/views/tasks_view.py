@@ -147,7 +147,7 @@ class TasksView(QWidget):
         filter_row.addStretch()
 
         self.progress_lbl = QLabel("0/0 completed (0%)", self)
-        self.progress_lbl.setStyleSheet("font-size: 11px; font-weight: 600; color: #8E8E93;")
+        self.progress_lbl.setProperty("class", "taskProgressLabel")
         filter_row.addWidget(self.progress_lbl)
 
         main_layout.addLayout(filter_row)

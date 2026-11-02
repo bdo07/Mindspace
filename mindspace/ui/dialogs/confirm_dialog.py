@@ -9,8 +9,6 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
-from mindspace.ui.themes.theme_manager import ThemeManager
-
 
 class ConfirmDialog(QDialog):
     """Clean confirmation dialog."""
@@ -28,30 +26,16 @@ class ConfirmDialog(QDialog):
         self.setFixedSize(380, 160)
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
 
-        theme = ThemeManager.instance()
-        bg_color = theme.get_color("surface")
-        text_color = theme.get_color("text")
-        sec_color = theme.get_color("text_secondary")
-        border_color = theme.get_color("border")
-
-        self.setStyleSheet(f"""
-            QDialog {{
-                background-color: {bg_color};
-                border: 1px solid {border_color};
-                border-radius: 12px;
-            }}
-        """)
-
         layout = QVBoxLayout(self)
         layout.setContentsMargins(24, 20, 24, 20)
         layout.setSpacing(12)
 
         title_lbl = QLabel(title, self)
-        title_lbl.setStyleSheet(f"font-size: 16px; font-weight: 700; color: {text_color};")
+        title_lbl.setProperty("class", "dialogTitle")
         layout.addWidget(title_lbl)
 
         msg_lbl = QLabel(message, self)
-        msg_lbl.setStyleSheet(f"font-size: 13px; color: {sec_color}; line-height: 1.4;")
+        msg_lbl.setProperty("class", "dialogDesc")
         msg_lbl.setWordWrap(True)
         layout.addWidget(msg_lbl, 1)
 
@@ -86,4 +70,3 @@ class ConfirmDialog(QDialog):
     ) -> bool:
         dlg = cls(title, message, confirm_label, is_danger, parent)
         return dlg.exec() == QDialog.Accepted
-

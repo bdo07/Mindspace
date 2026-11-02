@@ -54,7 +54,10 @@ class SearchBar(QWidget):
             icon_color = theme.get_color("icon")
             self.clear_btn.setIcon(get_icon("close", color=icon_color, size=14))
             search_icon = get_icon("search", color=icon_color, size=16)
-            self.input.addAction(search_icon, QLineEdit.LeadingPosition)
+            if not hasattr(self, "_search_action"):
+                self._search_action = self.input.addAction(search_icon, QLineEdit.LeadingPosition)
+            else:
+                self._search_action.setIcon(search_icon)
         except RuntimeError:
             pass
 

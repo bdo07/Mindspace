@@ -49,6 +49,10 @@ class SettingsView(QWidget):
         try:
             self._update_icons()
             self.refresh()
+            if hasattr(self, "theme_combo") and theme_name:
+                self.theme_combo.blockSignals(True)
+                self.theme_combo.setCurrentIndex(1 if theme_name == "dark" else 0)
+                self.theme_combo.blockSignals(False)
         except RuntimeError:
             pass
 
@@ -91,9 +95,9 @@ class SettingsView(QWidget):
         tc_layout.setSpacing(12)
 
         t_lbl = QLabel("Color Theme", theme_card)
-        t_lbl.setStyleSheet("font-size: 13px; font-weight: 600;")
+        t_lbl.setProperty("class", "settingTitle")
         t_desc = QLabel("Choose between a warm light canvas and an eye-friendly dark mode.", theme_card)
-        t_desc.setStyleSheet("font-size: 12px; color: #8E8E93;")
+        t_desc.setProperty("class", "settingDesc")
 
         t_text_box = QVBoxLayout()
         t_text_box.addWidget(t_lbl)
@@ -114,9 +118,9 @@ class SettingsView(QWidget):
 
         # Startup View
         v_lbl = QLabel("Default Startup View", theme_card)
-        v_lbl.setStyleSheet("font-size: 13px; font-weight: 600;")
+        v_lbl.setProperty("class", "settingTitle")
         v_desc = QLabel("Select which view opens automatically when starting Mindspace.", theme_card)
-        v_desc.setStyleSheet("font-size: 12px; color: #8E8E93;")
+        v_desc.setProperty("class", "settingDesc")
 
         v_text_box = QVBoxLayout()
         v_text_box.addWidget(v_lbl)
@@ -150,9 +154,9 @@ class SettingsView(QWidget):
         ec_layout.setSpacing(12)
 
         as_lbl = QLabel("Auto-Save Frequency", editor_card)
-        as_lbl.setStyleSheet("font-size: 13px; font-weight: 600;")
+        as_lbl.setProperty("class", "settingTitle")
         as_desc = QLabel("Notes are automatically saved locally as you write without losing focus.", editor_card)
-        as_desc.setStyleSheet("font-size: 12px; color: #8E8E93;")
+        as_desc.setProperty("class", "settingDesc")
 
         as_box = QVBoxLayout()
         as_box.addWidget(as_lbl)
@@ -185,7 +189,7 @@ class SettingsView(QWidget):
         bc_layout.setSpacing(12)
 
         self.stats_lbl = QLabel(backup_card)
-        self.stats_lbl.setStyleSheet("font-size: 12px; line-height: 1.6;")
+        self.stats_lbl.setProperty("class", "statsText")
         bc_layout.addWidget(self.stats_lbl)
 
         btn_row = QHBoxLayout()
@@ -218,9 +222,9 @@ class SettingsView(QWidget):
         info_box = QVBoxLayout()
         info_box.setSpacing(2)
         app_name_lbl = QLabel(f"MINDSPACE v{__version__}", about_card)
-        app_name_lbl.setStyleSheet("font-size: 14px; font-weight: 700;")
+        app_name_lbl.setProperty("class", "settingTitle")
         tech_lbl = QLabel("Modern desktop productivity sanctuary built with Python 3, PySide6 & SQLite.", about_card)
-        tech_lbl.setStyleSheet("font-size: 12px; color: #8E8E93;")
+        tech_lbl.setProperty("class", "settingDesc")
         info_box.addWidget(app_name_lbl)
         info_box.addWidget(tech_lbl)
         ac_layout.addLayout(info_box, 1)

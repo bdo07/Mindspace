@@ -75,21 +75,14 @@ class QuickNotesView(QWidget):
         capture_layout.setSpacing(8)
 
         self.input_box = QPlainTextEdit(capture_frame)
+        self.input_box.setObjectName("quickCaptureInput")
         self.input_box.setPlaceholderText("What's on your mind? Jot down an idea, link, or fragment...")
         self.input_box.setMaximumHeight(80)
-        self.input_box.setStyleSheet("""
-            QPlainTextEdit {
-                border: none;
-                background: transparent;
-                font-size: 14px;
-                line-height: 1.5;
-            }
-        """)
         capture_layout.addWidget(self.input_box)
 
         action_row = QHBoxLayout()
         hint_lbl = QLabel("Press Ctrl/Cmd + Enter to capture", capture_frame)
-        hint_lbl.setStyleSheet("font-size: 11px; color: #8E8E93;")
+        hint_lbl.setProperty("class", "hintText")
         action_row.addWidget(hint_lbl)
         action_row.addStretch()
 
@@ -191,9 +184,9 @@ class QuickNotesView(QWidget):
 
             # Thought Text
             content_lbl = QLabel(note.content, card)
+            content_lbl.setProperty("class", "quickThoughtContent")
             content_lbl.setTextInteractionFlags(Qt.TextSelectableByMouse)
             content_lbl.setWordWrap(True)
-            content_lbl.setStyleSheet("font-size: 13px; color: inherit; line-height: 1.5;")
             card_layout.addWidget(content_lbl)
 
             # Footer
