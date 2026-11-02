@@ -17,7 +17,6 @@ from PySide6.QtWidgets import (
 
 from mindspace.models.category import Category
 from mindspace.models.task import Task
-from mindspace.ui.themes.theme_manager import ThemeManager
 
 
 class TaskDialog(QDialog):
@@ -38,37 +37,24 @@ class TaskDialog(QDialog):
         self.setFixedSize(440, 420)
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
 
-        theme = ThemeManager.instance()
-        bg_color = theme.get_color("surface")
-        text_color = theme.get_color("text")
-        border_color = theme.get_color("border")
-
-        self.setStyleSheet(f"""
-            QDialog {{
-                background-color: {bg_color};
-                border: 1px solid {border_color};
-                border-radius: 12px;
-            }}
-        """)
-
         layout = QVBoxLayout(self)
         layout.setContentsMargins(24, 20, 24, 20)
         layout.setSpacing(10)
 
         # Header Title
         title_lbl = QLabel("Edit Task" if is_edit else "Create New Task", self)
-        title_lbl.setStyleSheet(f"font-size: 16px; font-weight: 700; color: {text_color};")
+        title_lbl.setProperty("class", "dialogTitle")
         layout.addWidget(title_lbl)
 
         # Validation error label (hidden by default)
         self.error_label = QLabel("", self)
-        self.error_label.setStyleSheet("color: #D63031; font-size: 11px; font-weight: 600;")
+        self.error_label.setProperty("class", "dialogError")
         self.error_label.setVisible(False)
         layout.addWidget(self.error_label)
 
         # Title input
         title_tag = QLabel("Title *", self)
-        title_tag.setStyleSheet(f"font-size: 11px; font-weight: 600; color: {theme.get_color('text_secondary')};")
+        title_tag.setProperty("class", "inputLabel")
         layout.addWidget(title_tag)
 
         self.title_input = QLineEdit(self)
@@ -81,7 +67,7 @@ class TaskDialog(QDialog):
 
         # Description input
         desc_tag = QLabel("Description (Optional)", self)
-        desc_tag.setStyleSheet(f"font-size: 11px; font-weight: 600; color: {theme.get_color('text_secondary')};")
+        desc_tag.setProperty("class", "inputLabel")
         layout.addWidget(desc_tag)
 
         self.desc_input = QTextEdit(self)
@@ -100,7 +86,7 @@ class TaskDialog(QDialog):
         due_col = QVBoxLayout()
         due_col.setSpacing(4)
         due_lbl = QLabel("Due Date", self)
-        due_lbl.setStyleSheet(f"font-size: 11px; font-weight: 600; color: {theme.get_color('text_secondary')};")
+        due_lbl.setProperty("class", "inputLabel")
         due_col.addWidget(due_lbl)
 
         self.due_date_edit = QDateEdit(self)
@@ -125,7 +111,7 @@ class TaskDialog(QDialog):
         prio_col = QVBoxLayout()
         prio_col.setSpacing(4)
         prio_lbl = QLabel("Priority", self)
-        prio_lbl.setStyleSheet(f"font-size: 11px; font-weight: 600; color: {theme.get_color('text_secondary')};")
+        prio_lbl.setProperty("class", "inputLabel")
         prio_col.addWidget(prio_lbl)
 
         self.prio_combo = QComboBox(self)
@@ -141,7 +127,7 @@ class TaskDialog(QDialog):
         cat_col = QVBoxLayout()
         cat_col.setSpacing(4)
         cat_lbl = QLabel("Category", self)
-        cat_lbl.setStyleSheet(f"font-size: 11px; font-weight: 600; color: {theme.get_color('text_secondary')};")
+        cat_lbl.setProperty("class", "inputLabel")
         cat_col.addWidget(cat_lbl)
 
         self.cat_combo = QComboBox(self)
@@ -203,18 +189,25 @@ class TaskDialog(QDialog):
 
     def _clear_error(self):
         self.error_label.setVisible(False)
-        self.title_input.setStyleSheet("")
+        self.title_input.setProperty("hasError", False)
+        self.title_input.style().unpolish(self.title_input)
+        self.title_input.style().polish(self.title_input)
 
     def _on_due_toggle(self, checked: bool):
         self.due_date_edit.setEnabled(checked)
         self.has_due_date.setText("Remove" if checked else "Set Date")
+        self.has_due_date.setProperty("active", "true" if checked else "false")
+        self.has_due_date.style().unpolish(self.has_due_date)
+        self.has_due_date.style().polish(self.has_due_date)
 
     def _on_save(self):
         title = self.title_input.text().strip()
         if not title:
             self.error_label.setText("Please enter a task title.")
             self.error_label.setVisible(True)
-            self.title_input.setStyleSheet("border: 1.5px solid #D63031;")
+            self.title_input.setProperty("hasError", True)
+            self.title_input.style().unpolish(self.title_input)
+            self.title_input.style().polish(self.title_input)
             self.title_input.setFocus()
             return
 
