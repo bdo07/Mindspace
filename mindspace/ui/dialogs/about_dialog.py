@@ -1,7 +1,16 @@
 """About dialog displaying app information, philosophy, and keyboard shortcuts."""
 
+import sys
+from pathlib import Path
+
+# Ensure project root is in sys.path if run directly as a script
+_project_root = str(Path(__file__).resolve().parent.parent.parent.parent)
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
+    QApplication,
     QDialog,
     QFrame,
     QGridLayout,
@@ -101,3 +110,11 @@ class AboutDialog(QDialog):
         btn_layout.addWidget(close_btn)
 
         layout.addLayout(btn_layout)
+
+
+if __name__ == "__main__":
+    app = QApplication.instance() or QApplication(sys.argv)
+    ThemeManager.instance().apply_theme("light")
+    dialog = AboutDialog()
+    dialog.show()
+    sys.exit(app.exec())
