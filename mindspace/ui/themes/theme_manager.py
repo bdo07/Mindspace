@@ -81,6 +81,9 @@ class ThemeManager(QObject):
             "icon_gold": "#FFD43B" if dark else "#F59F00",
             "danger": "#FF6B6B" if dark else "#D63031",
             "success": "#51CF66" if dark else "#2B8A3E",
+            "primary_btn_bg": "#7E69D6" if dark else "#7059C8",
+            "primary_btn_text": "#FFFFFF",
+            "swatch_border": "#FFFFFF" if dark else "#1C1C1E",
         }
         return colors.get(token, "#858585")
 
