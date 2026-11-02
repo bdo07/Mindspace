@@ -2,7 +2,13 @@
 
 import sys
 from pathlib import Path
-from PySide6.QtCore import Qt, QCoreApplication
+
+# Ensure project root is on sys.path even when executed directly as a script
+_project_root = str(Path(__file__).resolve().parent.parent)
+if _project_root not in sys.path:
+    sys.path.insert(0, _project_root)
+
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont, QIcon
 from PySide6.QtWidgets import QApplication
 
@@ -13,11 +19,7 @@ from mindspace.ui.main_window import MainWindow
 
 def main():
     """Main routine initializing and executing MINDSPACE."""
-    # Enable High DPI pixmaps and scaling
-    QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
-    QCoreApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
-
-    app = QApplication(sys.argv)
+    app = QApplication.instance() or QApplication(sys.argv)
     app.setApplicationName(__app_name__)
     app.setApplicationDisplayName("MINDSPACE — Your Personal Space")
     app.setApplicationVersion(__version__)
@@ -25,7 +27,8 @@ def main():
     app.setOrganizationDomain("mindspace.app")
 
     # Set default clean system font
-    default_font = QFont("-apple-system", 10)
+    font_family = ".AppleSystemUIFont" if sys.platform == "darwin" else "Segoe UI"
+    default_font = QFont(font_family, 10)
     default_font.setStyleHint(QFont.SansSerif)
     app.setFont(default_font)
 
@@ -36,9 +39,8 @@ def main():
     window = MainWindow()
     window.show()
 
-    sys.exit(app.exec())
+    return app.exec()
 
 
 if __name__ == "__main__":
-    main()
-
+    sys.exit(main())
