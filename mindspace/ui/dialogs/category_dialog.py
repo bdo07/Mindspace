@@ -3,7 +3,6 @@
 from typing import List, Optional
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QColorDialog,
     QDialog,
     QGridLayout,
     QHBoxLayout,
@@ -18,21 +17,21 @@ from mindspace.models.category import Category
 from mindspace.ui.themes.theme_manager import ThemeManager
 
 PALETTE: List[str] = [
-    "#8B79D9",  # Mindspace Lavender
-    "#6C5CE7",  # Deep Purple
-    "#0984E3",  # Ocean Blue
-    "#00B894",  # Mint Green
-    "#00CEC9",  # Turquoise
-    "#E17055",  # Terracotta Orange
-    "#FD79A8",  # Rose Pink
-    "#E84393",  # Magenta
-    "#FDCB6E",  # Marigold
-    "#636E72",  # Slate
+    "#7059C8",  # Mindspace Lavender
+    "#5C7CFA",  # Cobalt Blue
+    "#20C997",  # Mint Green
+    "#12B886",  # Emerald
+    "#FCC419",  # Sunflower Yellow
+    "#FF922B",  # Warm Orange
+    "#FA5252",  # Coral Red
+    "#E64980",  # Berry Pink
+    "#BE4BDB",  # Orchid Purple
+    "#868E96",  # Cool Slate
 ]
 
 
 class CategoryDialog(QDialog):
-    """Dialog to create or edit category details."""
+    """Dialog to create or edit category details with color swatches."""
 
     def __init__(self, category: Optional[Category] = None, parent=None):
         super().__init__(parent)
@@ -41,7 +40,7 @@ class CategoryDialog(QDialog):
 
         is_edit = category is not None
         self.setWindowTitle("Edit Category" if is_edit else "New Category")
-        self.setFixedSize(360, 280)
+        self.setFixedSize(360, 270)
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
 
         theme = ThemeManager.instance()
@@ -59,7 +58,7 @@ class CategoryDialog(QDialog):
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(24, 20, 24, 20)
-        layout.setSpacing(14)
+        layout.setSpacing(12)
 
         # Title
         title_lbl = QLabel("Edit Category" if is_edit else "Create Category", self)
@@ -67,20 +66,21 @@ class CategoryDialog(QDialog):
         layout.addWidget(title_lbl)
 
         # Name input
-        name_lbl = QLabel("Category Name", self)
-        name_lbl.setStyleSheet(f"font-size: 12px; font-weight: 600; color: {theme.get_color('text_secondary')};")
+        name_lbl = QLabel("Category Name *", self)
+        name_lbl.setStyleSheet(f"font-size: 11px; font-weight: 600; color: {theme.get_color('text_secondary')};")
         layout.addWidget(name_lbl)
 
         self.name_input = QLineEdit(self)
         self.name_input.setProperty("class", "standardInput")
         self.name_input.setPlaceholderText("e.g. Work, Ideas, Research")
+        self.name_input.textChanged.connect(lambda: self.name_input.setStyleSheet(""))
         if category:
             self.name_input.setText(category.name)
         layout.addWidget(self.name_input)
 
         # Color picker
         color_lbl = QLabel("Accent Color", self)
-        color_lbl.setStyleSheet(f"font-size: 12px; font-weight: 600; color: {theme.get_color('text_secondary')};")
+        color_lbl.setStyleSheet(f"font-size: 11px; font-weight: 600; color: {theme.get_color('text_secondary')};")
         layout.addWidget(color_lbl)
 
         palette_layout = QGridLayout()
@@ -91,7 +91,7 @@ class CategoryDialog(QDialog):
             row = idx // 5
             col = idx % 5
             btn = QPushButton(self)
-            btn.setFixedSize(28, 28)
+            btn.setFixedSize(26, 26)
             btn.setCursor(Qt.PointingHandCursor)
             btn.setProperty("color_val", color)
             self._style_color_btn(btn, color, is_selected=(color.lower() == self.selected_color.lower()))
@@ -109,14 +109,14 @@ class CategoryDialog(QDialog):
 
         cancel_btn = QPushButton("Cancel", self)
         cancel_btn.setProperty("class", "secondaryBtn")
-        cancel_btn.setFixedHeight(34)
+        cancel_btn.setFixedHeight(32)
         cancel_btn.setCursor(Qt.PointingHandCursor)
         cancel_btn.clicked.connect(self.reject)
         btn_layout.addWidget(cancel_btn)
 
         save_btn = QPushButton("Save", self)
         save_btn.setProperty("class", "primaryBtn")
-        save_btn.setFixedHeight(34)
+        save_btn.setFixedHeight(32)
         save_btn.setCursor(Qt.PointingHandCursor)
         save_btn.clicked.connect(self._on_save)
         btn_layout.addWidget(save_btn)
@@ -124,11 +124,11 @@ class CategoryDialog(QDialog):
         layout.addLayout(btn_layout)
 
     def _style_color_btn(self, btn: QPushButton, color: str, is_selected: bool):
-        border_style = "2px solid #202020" if is_selected else "1px solid rgba(0,0,0,0.15)"
+        border_style = "2.5px solid #1C1C1E" if is_selected else "1px solid rgba(0,0,0,0.18)"
         btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: {color};
-                border-radius: 14px;
+                border-radius: 13px;
                 border: {border_style};
             }}
         """)
@@ -142,6 +142,7 @@ class CategoryDialog(QDialog):
     def _on_save(self):
         name = self.name_input.text().strip()
         if not name:
+            self.name_input.setStyleSheet("border: 1.5px solid #D63031;")
             self.name_input.setFocus()
             return
         self.accept()
@@ -149,4 +150,3 @@ class CategoryDialog(QDialog):
     def get_data(self) -> tuple:
         """Returns (name, color)."""
         return self.name_input.text().strip(), self.selected_color
-
