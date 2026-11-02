@@ -16,10 +16,13 @@ class DatabaseConnection:
         elif os.environ.get("MINDSPACE_DB"):
             self.db_path = Path(os.environ["MINDSPACE_DB"])
         else:
-            # Try ~/.mindspace/mindspace.db, fall back to local workspace ./data/mindspace.db
+            # Try ~/.mindspace/mindspace.db, verify write access, fall back to local workspace ./data/mindspace.db
             try:
                 home_dir = Path.home() / ".mindspace"
                 home_dir.mkdir(parents=True, exist_ok=True)
+                test_file = home_dir / ".perm_check"
+                test_file.touch()
+                test_file.unlink(missing_ok=True)
                 self.db_path = home_dir / "mindspace.db"
             except (OSError, PermissionError):
                 local_dir = Path(__file__).resolve().parent.parent.parent / "data"
@@ -34,12 +37,23 @@ class DatabaseConnection:
 
     def get_connection(self) -> sqlite3.Connection:
         """Creates and configures a new SQLite connection."""
-        conn = sqlite3.connect(
-            str(self.db_path),
-            timeout=30.0,
-            detect_types=sqlite3.PARSE_DECLTYPES,
-            check_same_thread=False,
-        )
+        try:
+            conn = sqlite3.connect(
+                str(self.db_path),
+                timeout=30.0,
+                detect_types=sqlite3.PARSE_DECLTYPES,
+                check_same_thread=False,
+            )
+        except sqlite3.OperationalError:
+            local_dir = Path(__file__).resolve().parent.parent.parent / "data"
+            local_dir.mkdir(parents=True, exist_ok=True)
+            self.db_path = local_dir / "mindspace.db"
+            conn = sqlite3.connect(
+                str(self.db_path),
+                timeout=30.0,
+                detect_types=sqlite3.PARSE_DECLTYPES,
+                check_same_thread=False,
+            )
         conn.row_factory = sqlite3.Row
         # Enable WAL mode for high-concurrency read/write operations
         conn.execute("PRAGMA journal_mode=WAL;")

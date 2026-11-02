@@ -185,13 +185,16 @@ class NotesView(QWidget):
         return "All Notes"
 
     def _calculate_columns(self) -> int:
-        """Dynamically computes number of columns based on scroll area viewport width."""
+        """Dynamically computes number of columns based on available width."""
         viewport_w = self.scroll_area.viewport().width()
-        if viewport_w < 520:
+        if viewport_w <= 100:
+            viewport_w = max(300, self.width() - 48)
+
+        if viewport_w < 560:
             return 1
-        elif viewport_w < 820:
+        elif viewport_w < 860:
             return 2
-        elif viewport_w < 1180:
+        elif viewport_w < 1220:
             return 3
         else:
             return 4
