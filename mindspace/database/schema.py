@@ -101,7 +101,7 @@ def initialize_schema(conn: sqlite3.Connection) -> None:
     """Executes schema creation and seeds default data if tables are empty."""
     conn.executescript(SCHEMA_SQL)
 
-    # Check if categories already exist
+    
     cursor = conn.cursor()
     cursor.execute("SELECT COUNT(*) FROM categories")
     cat_count = cursor.fetchone()[0]
@@ -115,7 +115,7 @@ def initialize_schema(conn: sqlite3.Connection) -> None:
                 (name, color, icon, now),
             )
 
-    # Check if notes exist
+    
     cursor.execute("SELECT COUNT(*) FROM notes")
     note_count = cursor.fetchone()[0]
     if note_count == 0:
@@ -129,7 +129,7 @@ def initialize_schema(conn: sqlite3.Connection) -> None:
             (WELCOME_NOTE_TITLE, WELCOME_NOTE_CONTENT, personal_id, now, now),
         )
 
-    # Check if tasks exist
+    
     cursor.execute("SELECT COUNT(*) FROM tasks")
     task_count = cursor.fetchone()[0]
     if task_count == 0:
@@ -152,7 +152,7 @@ def initialize_schema(conn: sqlite3.Connection) -> None:
                 (title, desc, is_comp, due, prio, cat_id, now if is_comp else None, now, now),
             )
 
-    # Check default settings
+ 
     cursor.execute("SELECT COUNT(*) FROM settings")
     settings_count = cursor.fetchone()[0]
     if settings_count == 0:

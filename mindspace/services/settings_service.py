@@ -16,6 +16,7 @@ class SettingsService:
         self._cached_settings = AppSettings.from_dict(raw_dict)
         return self._cached_settings
 
+
     def set_theme(self, theme: str) -> None:
         if theme not in ("light", "dark"):
             theme = "light"

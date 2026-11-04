@@ -20,10 +20,7 @@ class MindspaceRepository:
         with self.db.session() as conn:
             initialize_schema(conn)
 
-    # --------------------------------------------------------------------------
-    # NOTES
-    # --------------------------------------------------------------------------
-
+    
     def get_note(self, note_id: int) -> Optional[Note]:
         """Fetch a single note by ID with its category information."""
         with self.db.session() as conn:
@@ -184,9 +181,7 @@ class MindspaceRepository:
             cursor.execute(f"SELECT COUNT(*) FROM notes WHERE {where_clause}", params)
             return cursor.fetchone()[0]
 
-    # --------------------------------------------------------------------------
-    # TASKS
-    # --------------------------------------------------------------------------
+    
 
     def get_task(self, task_id: int) -> Optional[Task]:
         """Fetch a single task by ID."""
@@ -315,9 +310,7 @@ class MindspaceRepository:
             cursor.execute("SELECT COUNT(*) FROM tasks WHERE is_completed = 0")
             return cursor.fetchone()[0]
 
-    # --------------------------------------------------------------------------
-    # CATEGORIES
-    # --------------------------------------------------------------------------
+    
 
     def list_categories(self) -> List[Category]:
         """List all categories ordered by name."""
@@ -379,9 +372,7 @@ class MindspaceRepository:
             )
             return {row["category_id"]: row["cnt"] for row in cursor.fetchall()}
 
-    # --------------------------------------------------------------------------
-    # SETTINGS
-    # --------------------------------------------------------------------------
+    
 
     def get_settings(self) -> Dict[str, str]:
         """Fetch all key-value settings."""

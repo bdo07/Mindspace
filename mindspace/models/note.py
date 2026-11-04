@@ -34,9 +34,9 @@ class Note:
         """Returns a clean plain-text snippet of the note content."""
         if not self.content:
             return "No additional text"
-        # Clean lines and return first 2-3 meaningful lines
+        
         lines = [line.strip() for line in self.content.splitlines() if line.strip()]
-        # Strip markdown hashes, bullets, bolding for preview
+        
         clean_lines = []
         for line in lines:
             cleaned = line.lstrip("# \t-*+>").replace("**", "").replace("*", "").replace("`", "")

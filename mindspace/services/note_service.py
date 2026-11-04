@@ -40,7 +40,7 @@ class NoteService:
         )
         note_id = self.repo.create_note(note)
         note.id = note_id
-        # Reload with joined category fields
+         
         return self.repo.get_note(note_id) or note
 
     def update_note(

@@ -1,5 +1,6 @@
 """Database connection manager for MINDSPACE."""
 
+
 import os
 import sqlite3
 from contextlib import contextmanager
@@ -8,7 +9,7 @@ from typing import Generator, Optional
 
 
 class DatabaseConnection:
-    """Manages SQLite database connections with thread safety and WAL mode."""
+    
 
     def __init__(self, db_path: Optional[str] = None):
         if db_path:
@@ -16,7 +17,7 @@ class DatabaseConnection:
         elif os.environ.get("MINDSPACE_DB"):
             self.db_path = Path(os.environ["MINDSPACE_DB"])
         else:
-            # Try ~/.mindspace/mindspace.db, verify write access, fall back to local workspace ./data/mindspace.db
+            
             try:
                 home_dir = Path.home() / ".mindspace"
                 home_dir.mkdir(parents=True, exist_ok=True)
@@ -29,7 +30,7 @@ class DatabaseConnection:
                 local_dir.mkdir(parents=True, exist_ok=True)
                 self.db_path = local_dir / "mindspace.db"
 
-        # Ensure parent directory exists
+       
         try:
             self.db_path.parent.mkdir(parents=True, exist_ok=True)
         except (OSError, PermissionError):
@@ -55,7 +56,7 @@ class DatabaseConnection:
                 check_same_thread=False,
             )
         conn.row_factory = sqlite3.Row
-        # Enable WAL mode for high-concurrency read/write operations
+        
         conn.execute("PRAGMA journal_mode=WAL;")
         conn.execute("PRAGMA foreign_keys=ON;")
         conn.execute("PRAGMA busy_timeout=5000;")
