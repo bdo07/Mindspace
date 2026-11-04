@@ -25,26 +25,29 @@ def markdown_to_html(md_text: str, theme: str = "light") -> str:
         escaped = html.escape(md_text or "")
         body_html = f"<div style='white-space: pre-wrap;'>{escaped}</div>"
 
+    is_dark = theme == "dark"
+    bg_color = "#202B1D" if is_dark else "#FFFFFF"
+    text_color = "#F2F5ED" if is_dark else "#20251E"
+    secondary_color = "#A7B29F" if is_dark else "#777E73"
+    border_color = "#354331" if is_dark else "#E4E8DF"
+    code_bg = "#182116" if is_dark else "#F0F2EB"
+    quote_border = "#F1A344" if is_dark else "#15370D"
+    link_color = "#97D7FF" if is_dark else "#15370D"
+    checkbox_bg = "#6C9B59" if is_dark else "#15370D"
+    checkbox_border = "#6C9B59" if is_dark else "#15370D"
+    check_text_color = "#11170F" if is_dark else "#FFFFFF"
+
     # Turn checklist markdown syntax `[ ]` and `[x]` into visual styled boxes
     body_html = re.sub(
         r"\[ \]\s*",
-        r"<span style='display:inline-block;width:14px;height:14px;border:1.5px solid #858585;border-radius:3px;margin-right:6px;vertical-align:middle;'></span>",
+        f"<span style='display:inline-block;width:14px;height:14px;border:1.5px solid {secondary_color};border-radius:3px;margin-right:6px;vertical-align:middle;'></span>",
         body_html,
     )
     body_html = re.sub(
         r"\[[xX]\]\s*",
-        r"<span style='display:inline-block;width:14px;height:14px;background:#8B79D9;border:1.5px solid #8B79D9;border-radius:3px;margin-right:6px;vertical-align:middle;text-align:center;color:#fff;font-size:10px;line-height:14px;'>✓</span>",
+        f"<span style='display:inline-block;width:14px;height:14px;background:{checkbox_bg};border:1.5px solid {checkbox_border};border-radius:3px;margin-right:6px;vertical-align:middle;text-align:center;color:{check_text_color};font-size:10px;line-height:14px;font-weight:700;'>✓</span>",
         body_html,
     )
-
-    is_dark = theme == "dark"
-    bg_color = "#1E1E22" if is_dark else "#FFFFFF"
-    text_color = "#F0F0F3" if is_dark else "#202020"
-    secondary_color = "#A0A0A8" if is_dark else "#6C6C74"
-    border_color = "#2E2E36" if is_dark else "#EAE8E2"
-    code_bg = "#27272D" if is_dark else "#F4F3EE"
-    quote_border = "#9D8DE6" if is_dark else "#8B79D9"
-    link_color = "#A899E8" if is_dark else "#7865CD"
 
     template = f"""
     <!DOCTYPE html>
@@ -136,4 +139,3 @@ def markdown_to_html(md_text: str, theme: str = "light") -> str:
     </html>
     """
     return template
-

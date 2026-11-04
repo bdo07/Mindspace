@@ -19,7 +19,7 @@ class CategoryService:
     def get_category(self, category_id: int) -> Optional[Category]:
         return self.repo.get_category(category_id)
 
-    def create_category(self, name: str, color: str = "#8B79D9", icon: str = "folder") -> Category:
+    def create_category(self, name: str, color: str = "#15370D", icon: str = "folder") -> Category:
         name = name.strip()
         if not name:
             raise ValueError("Category name cannot be empty")

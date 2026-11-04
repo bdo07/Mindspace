@@ -24,16 +24,16 @@ from mindspace.models.category import Category
 from mindspace.ui.themes.theme_manager import ThemeManager
 
 PALETTE: List[str] = [
-    "#7059C8",  # Mindspace Lavender
-    "#5C7CFA",  # Cobalt Blue
-    "#20C997",  # Mint Green
-    "#12B886",  # Emerald
-    "#FCC419",  # Sunflower Yellow
-    "#FF922B",  # Warm Orange
-    "#FA5252",  # Coral Red
-    "#E64980",  # Berry Pink
-    "#BE4BDB",  # Orchid Purple
-    "#868E96",  # Cool Slate
+    "#15370D",  # Forest Green (Brand Primary)
+    "#F1A344",  # Warm Amber (Brand Secondary)
+    "#97D7FF",  # Soft Sky Blue (Brand Soft Accent)
+    "#6C9B59",  # Green Accent / Sage
+    "#2D6A4F",  # Deep Foliage Green
+    "#D97706",  # Golden Ochre
+    "#0284C7",  # Ocean Blue
+    "#0D9488",  # Pine Teal
+    "#E05252",  # Terracotta Red
+    "#777E73",  # Olive Slate
 ]
 
 

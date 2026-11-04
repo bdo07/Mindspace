@@ -11,7 +11,7 @@ class Category:
 
     id: Optional[int] = None
     name: str = ""
-    color: str = "#8B79D9"
+    color: str = "#15370D"
     icon: str = "folder"
     created_at: Optional[str] = None
 

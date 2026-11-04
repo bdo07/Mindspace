@@ -85,7 +85,7 @@ class NoteCard(QFrame):
         footer_layout.setSpacing(8)
 
         if self.note.category_name:
-            color = self.note.category_color or "#7059C8"
+            color = self.note.category_color or ThemeManager.instance().get_color("accent")
             qc = QColor(color)
             r, g, b = qc.red(), qc.green(), qc.blue()
             self.category_pill = QLabel(f" {self.note.category_name} ", self)

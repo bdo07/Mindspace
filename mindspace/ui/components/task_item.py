@@ -86,7 +86,7 @@ class TaskItem(QFrame):
 
         # Category Pill
         if self.task.category_name:
-            color = self.task.category_color or "#7059C8"
+            color = self.task.category_color or ThemeManager.instance().get_color("accent")
             qc = QColor(color)
             r, g, b = qc.red(), qc.green(), qc.blue()
             self.cat_pill = QLabel(f" {self.task.category_name} ", self)

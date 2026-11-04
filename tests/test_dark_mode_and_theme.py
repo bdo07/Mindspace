@@ -57,16 +57,21 @@ class TestDarkModeAndTheme(unittest.TestCase):
         tm.apply_theme("light")
         self.assertEqual(tm.current_theme, "light")
         self.assertFalse(tm.is_dark)
-        self.assertEqual(tm.get_color("background"), "#F7F6F2")
+        self.assertEqual(tm.get_color("background"), "#F7F8F4")
         self.assertEqual(tm.get_color("surface"), "#FFFFFF")
-        self.assertEqual(tm.get_color("swatch_border"), "#1C1C1E")
+        self.assertEqual(tm.get_color("swatch_border"), "#15370D")
+        self.assertEqual(tm.get_color("accent"), "#15370D")
+        self.assertEqual(tm.get_color("secondary_accent"), "#F1A344")
 
         tm.apply_theme("dark")
         self.assertEqual(tm.current_theme, "dark")
         self.assertTrue(tm.is_dark)
-        self.assertEqual(tm.get_color("background"), "#161618")
-        self.assertEqual(tm.get_color("surface"), "#1E1E22")
+        self.assertEqual(tm.get_color("background"), "#11170F")
+        self.assertEqual(tm.get_color("surface"), "#202B1D")
         self.assertEqual(tm.get_color("swatch_border"), "#FFFFFF")
+        self.assertEqual(tm.get_color("accent"), "#97D7FF")
+        self.assertEqual(tm.get_color("secondary_accent"), "#F1A344")
+        self.assertEqual(tm.get_color("green_accent"), "#6C9B59")
 
         # Verify QSS contains critical selectors in dark mode
         dark_qss = tm._cache.get("dark", "")
@@ -85,8 +90,8 @@ class TestDarkModeAndTheme(unittest.TestCase):
         light_html = markdown_to_html(md, theme="light")
         dark_html = markdown_to_html(md, theme="dark")
 
-        self.assertIn("#1E1E22", dark_html)
-        self.assertIn("#F0F0F3", dark_html)
+        self.assertIn("#202B1D", dark_html)
+        self.assertIn("#F2F5ED", dark_html)
         self.assertIn("#FFFFFF", light_html)
 
     def test_dialogs_dark_mode_instantiation_and_classes(self):
@@ -106,8 +111,8 @@ class TestDarkModeAndTheme(unittest.TestCase):
         dlg_cat = CategoryDialog(parent=None)
         self.assertEqual(len(dlg_cat.color_buttons), 10)
         # Select another color and ensure swatch styles update
-        dlg_cat._select_color("#5C7CFA")
-        self.assertEqual(dlg_cat.selected_color, "#5C7CFA")
+        dlg_cat._select_color("#F1A344")
+        self.assertEqual(dlg_cat.selected_color, "#F1A344")
         dlg_cat.close()
 
         # ConfirmDialog
@@ -155,3 +160,42 @@ class TestDarkModeAndTheme(unittest.TestCase):
         self.assertEqual(tm.current_theme, "dark")
         self.assertEqual(win2.settings_view.theme_combo.currentIndex(), 1)
         win2.close()
+
+    def test_brand_palette_integrity_and_no_purple(self):
+        """Verifies no purple hex colors remain and brand palette tokens are strictly enforced."""
+        tm = ThemeManager.instance()
+
+        # 1. Light Mode Brand Tokens
+        tm.apply_theme("light")
+        self.assertEqual(tm.get_color("background"), "#F7F8F4")
+        self.assertEqual(tm.get_color("sidebar"), "#F0F2EB")
+        self.assertEqual(tm.get_color("surface"), "#FFFFFF")
+        self.assertEqual(tm.get_color("text"), "#20251E")
+        self.assertEqual(tm.get_color("text_secondary"), "#777E73")
+        self.assertEqual(tm.get_color("accent"), "#15370D")
+        self.assertEqual(tm.get_color("secondary_accent"), "#F1A344")
+        self.assertEqual(tm.get_color("soft_accent"), "#97D7FF")
+        self.assertEqual(tm.get_color("border"), "#E4E8DF")
+
+        # 2. Dark Mode Brand Tokens
+        tm.apply_theme("dark")
+        self.assertEqual(tm.get_color("background"), "#11170F")
+        self.assertEqual(tm.get_color("sidebar"), "#182116")
+        self.assertEqual(tm.get_color("surface"), "#202B1D")
+        self.assertEqual(tm.get_color("elevated"), "#293725")
+        self.assertEqual(tm.get_color("text"), "#F2F5ED")
+        self.assertEqual(tm.get_color("text_secondary"), "#A7B29F")
+        self.assertEqual(tm.get_color("accent"), "#97D7FF")
+        self.assertEqual(tm.get_color("secondary_accent"), "#F1A344")
+        self.assertEqual(tm.get_color("green_accent"), "#6C9B59")
+        self.assertEqual(tm.get_color("border"), "#354331")
+
+        # 3. Check for absence of purple hex codes in stylesheets
+        purple_hexes = [
+            "#8B79D9", "#7865CD", "#6B56C7", "#9D8DE6",
+            "#A899E8", "#5A45B5", "#6C5CE7", "#7059C8", "#BE4BDB"
+        ]
+        for theme_name in ("light", "dark"):
+            qss = tm._cache.get(theme_name, "")
+            for p in purple_hexes:
+                self.assertNotIn(p.lower(), qss.lower(), f"Found old purple hex {p} in {theme_name}.qss")

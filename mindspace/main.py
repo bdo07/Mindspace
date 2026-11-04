@@ -29,11 +29,10 @@ def main():
     # Set default clean system font
     font_family = ".AppleSystemUIFont" if sys.platform == "darwin" else "Segoe UI"
     default_font = QFont(font_family, 10)
-    default_font.setStyleHint(QFont.SansSerif)
     app.setFont(default_font)
 
     # Set Window Icon
-    app_icon = get_icon("logo", color="#8B79D9", size=64)
+    app_icon = get_icon("logo", color="#15370D", size=64)
     app.setWindowIcon(app_icon)
 
     window = MainWindow()

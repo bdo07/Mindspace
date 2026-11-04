@@ -218,7 +218,7 @@ class TestFullAuditAndResponsive(unittest.TestCase):
         self.assertGreaterEqual(len(search_results), 1)
 
         # 10. Category Editing & Deletion
-        cat = window.category_service.create_category(name="Old Name", color="#7059C8")
+        cat = window.category_service.create_category(name="Old Name", color="#15370D")
         window.category_service.update_category(cat.id, name="New Name", color="#5C7CFA")
         updated_cat = window.category_service.get_category(cat.id)
         self.assertEqual(updated_cat.name, "New Name")

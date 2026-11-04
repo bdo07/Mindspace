@@ -22,19 +22,27 @@ A minimalist, modern personal productivity desktop application crafted with **Py
 
 ---
 
-## 🎨 Design System
+## 🎨 Design System & Brand Identity
 
-MINDSPACE follows a clean, minimalist design language inspired by modern macOS productivity tools:
+MINDSPACE is built upon a refined, nature-inspired palette: **Primary Forest Green (`#15370D`)**, **Warm Amber (`#F1A344`)**, and **Soft Sky Blue (`#97D7FF`)**.
+
+- **Forest Green (`#15370D`)**: Primary buttons, active navigation, selected states, and core branding.
+- **Warm Amber (`#F1A344`)**: Highlights, subtle badges, progress indicators, and favorite stars.
+- **Soft Sky Blue (`#97D7FF`)**: Secondary interactive emphasis, focus indicators, and dark mode interactive states.
 
 | Element | Light Mode | Dark Mode |
 |---|---|---|
-| **Background** | `#F7F6F2` (Warm Canvas) | `#161618` (Deep Slate) |
-| **Surface** | `#FFFFFF` (Pure White) | `#1E1E22` (Charcoal Surface) |
-| **Primary Text** | `#1C1C1E` | `#F2F2F5` |
-| **Secondary Text** | `#6E6E73` | `#9A9AA4` |
-| **Accent Color** | `#7059C8` (Mindspace Lavender) | `#9887E8` / `#7E69D6` |
-| **Borders** | `#E5E2D9` | `#2C2C32` |
-| **Typography** | `.AppleSystemUIFont`, Inter, Segoe UI, sans-serif | `.AppleSystemUIFont`, Inter, Segoe UI, sans-serif |
+| **Background** | `#F7F8F4` (Warm Canvas) | `#11170F` (Deep Forest) |
+| **Sidebar** | `#F0F2EB` (Soft Celadon) | `#182116` (Foliage Charcoal) |
+| **Cards / Surfaces** | `#FFFFFF` (Pure White) | `#202B1D` (Dark Olive Surface) |
+| **Elevated Surfaces**| `#FFFFFF` | `#293725` (Elevated Forest Surface) |
+| **Primary Text** | `#20251E` | `#F2F5ED` |
+| **Secondary Text** | `#777E73` | `#A7B29F` |
+| **Primary Accent** | `#15370D` (Forest Green) | `#97D7FF` (Soft Sky Blue) |
+| **Secondary Accent**| `#F1A344` (Warm Amber) | `#F1A344` (Warm Amber) |
+| **Structural Green**| `#15370D` | `#6C9B59` (Sage Green Accent) |
+| **Borders** | `#E4E8DF` | `#354331` |
+| **Typography** | `.AppleSystemUIFont`, Segoe UI, Roboto, Inter | `.AppleSystemUIFont`, Segoe UI, Roboto, Inter |
 
 ---
 

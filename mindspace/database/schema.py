@@ -7,7 +7,7 @@ SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS categories (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL UNIQUE,
-    color TEXT NOT NULL DEFAULT '#8B79D9',
+    color TEXT NOT NULL DEFAULT '#15370D',
     icon TEXT NOT NULL DEFAULT 'folder',
     created_at TEXT NOT NULL
 );
@@ -56,10 +56,10 @@ CREATE INDEX IF NOT EXISTS idx_tasks_due ON tasks(due_date);
 """
 
 DEFAULT_CATEGORIES = [
-    ("Personal", "#6C5CE7", "user"),
-    ("Work", "#0984E3", "briefcase"),
-    ("Ideas", "#00B894", "lightbulb"),
-    ("Learning", "#E17055", "book-open"),
+    ("Personal", "#15370D", "user"),
+    ("Work", "#0284C7", "briefcase"),
+    ("Ideas", "#F1A344", "lightbulb"),
+    ("Learning", "#6C9B59", "book-open"),
 ]
 
 WELCOME_NOTE_TITLE = "Welcome to MINDSPACE 👋"
