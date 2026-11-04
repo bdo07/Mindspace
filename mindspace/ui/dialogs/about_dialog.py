@@ -3,7 +3,7 @@
 import sys
 from pathlib import Path
 
-# Ensure project root is in sys.path if run directly as a script
+ 
 _project_root = str(Path(__file__).resolve().parent.parent.parent.parent)
 if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
@@ -37,8 +37,7 @@ class AboutDialog(QDialog):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(28, 24, 28, 24)
         layout.setSpacing(14)
-
-        # Header with Logo & Title
+ 
         header_layout = QHBoxLayout()
         header_layout.setSpacing(14)
 
@@ -61,8 +60,7 @@ class AboutDialog(QDialog):
         header_layout.addLayout(title_col)
         header_layout.addStretch()
         layout.addLayout(header_layout)
-
-        # Description
+ 
         desc_lbl = QLabel(
             "A minimalist personal productivity sanctuary combining notes, tasks, "
             "quick thoughts, favorites, and organization. Built with Python 3, PySide6, "
@@ -73,7 +71,7 @@ class AboutDialog(QDialog):
         desc_lbl.setWordWrap(True)
         layout.addWidget(desc_lbl)
 
-        # Shortcuts Section
+        
         sc_card = QFrame(self)
         sc_card.setProperty("class", "shortcutCard")
         sc_layout = QGridLayout(sc_card)
@@ -98,7 +96,7 @@ class AboutDialog(QDialog):
         layout.addWidget(sc_card)
         layout.addStretch()
 
-        # Close button
+         
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
         close_btn = QPushButton("Done", self)

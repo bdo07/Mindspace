@@ -86,11 +86,11 @@ class TaskDialog(QDialog):
             self.desc_input.setText(task.description)
         layout.addWidget(self.desc_input)
 
-        # Row: Due Date & Priority
+         
         row1 = QHBoxLayout()
         row1.setSpacing(12)
 
-        # Due Date
+        
         due_col = QVBoxLayout()
         due_col.setSpacing(4)
         due_lbl = QLabel("Due Date", self)
@@ -115,7 +115,7 @@ class TaskDialog(QDialog):
         due_col.addLayout(due_row)
         row1.addLayout(due_col)
 
-        # Priority
+      
         prio_col = QVBoxLayout()
         prio_col.setSpacing(4)
         prio_lbl = QLabel("Priority", self)
@@ -130,8 +130,7 @@ class TaskDialog(QDialog):
         row1.addLayout(prio_col)
 
         layout.addLayout(row1)
-
-        # Category Row
+ 
         cat_col = QVBoxLayout()
         cat_col.setSpacing(4)
         cat_lbl = QLabel("Category", self)
@@ -147,7 +146,7 @@ class TaskDialog(QDialog):
         cat_col.addWidget(self.cat_combo)
         layout.addLayout(cat_col)
 
-        # Initialize existing values if editing
+         
         if task:
             if task.due_date:
                 try:
@@ -174,7 +173,7 @@ class TaskDialog(QDialog):
 
         layout.addStretch()
 
-        # Action Buttons
+         
         btn_layout = QHBoxLayout()
         btn_layout.setSpacing(10)
         btn_layout.addStretch()

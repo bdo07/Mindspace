@@ -85,7 +85,7 @@ class ThemeManager(QObject):
             "border_hover": "#4D6047" if dark else "#C8CEC1",
             "icon": "#A7B29F" if dark else "#777E73",
             "icon_active": "#97D7FF" if dark else "#15370D",
-            "icon_gold": "#F1A344",  # Warm Amber for favorites/stars
+            "icon_gold": "#F1A344",   
             "danger": "#FF6B6B" if dark else "#D63031",
             "success": "#6C9B59" if dark else "#15370D",
             "primary_btn_bg": "#97D7FF" if dark else "#15370D",

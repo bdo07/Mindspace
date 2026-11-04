@@ -132,7 +132,7 @@ class Sidebar(QWidget):
 
         self.main_layout.addWidget(self.cat_header_widget)
 
-        # Scrollable categories container
+        
         self.cat_scroll = QScrollArea(self)
         self.cat_scroll.setWidgetResizable(True)
         self.cat_scroll.setStyleSheet("QScrollArea { border: none; background: transparent; }")
@@ -148,7 +148,7 @@ class Sidebar(QWidget):
         self.cat_scroll.setWidget(self.cat_container)
         self.main_layout.addWidget(self.cat_scroll, 1)
 
-        # 4. Footer: Theme Toggle & Settings
+        
         self.footer_widget = QWidget(self)
         self.footer_widget.setStyleSheet("background: transparent;")
         footer_layout = QVBoxLayout(self.footer_widget)
@@ -282,15 +282,14 @@ class Sidebar(QWidget):
                 }}
             """)
             layout.addWidget(dot)
-
-            # Category name
+ 
             name_lbl = QLabel(cat.name, btn)
             name_lbl.setAttribute(Qt.WA_TransparentForMouseEvents)
             layout.addWidget(name_lbl, 1)
             name_lbl.setVisible(not self.is_collapsed)
             self._category_labels[cat.id] = name_lbl
 
-            # Count badge
+            
             cnt = note_counts.get(cat.id, 0)
             cnt_badge = QLabel(str(cnt), btn)
             cnt_badge.setProperty("class", "badge")

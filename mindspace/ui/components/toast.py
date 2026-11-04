@@ -52,7 +52,7 @@ class Toast(QWidget):
         self.show()
         self.raise_()
 
-        # Fade in
+         
         self.opacity_anim.stop()
         self.opacity_anim.setDuration(180)
         self.opacity_anim.setStartValue(0.0)
